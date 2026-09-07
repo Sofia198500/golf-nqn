@@ -62,13 +62,18 @@
 
   .seccion{margin-bottom:26px}
   .seccion-cab{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:10px}
-  .ronda{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); margin-bottom:10px; overflow:hidden}
-  .ronda summary{list-style:none; cursor:pointer; padding:12px 14px; display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center}
+  .ronda{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); margin-bottom:6px; overflow:hidden}
+  .ronda summary{list-style:none; cursor:pointer; padding:9px 12px; display:block}
+  .ronda summary .l1{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+  .ronda summary .l2{font-size:12.5px; color:var(--tinta-2); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .ronda summary .gan{font-size:14px; color:var(--tinta-2); white-space:nowrap; flex:0 0 auto}
+  .ronda summary .gan b{color:var(--tinta); font-size:15px; margin-left:3px}
+  .grupo{margin-bottom:16px}
+  .grupo-cab{display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+    font-size:13px; color:var(--tinta-2); padding:0 2px 5px; border-bottom:1px solid var(--linea); margin-bottom:8px}
+  .grupo-cab span:first-child{font-weight:700; color:var(--tinta); font-size:15px}
   .ronda summary::-webkit-details-marker{display:none}
-  .ronda .fecha{font-weight:700; font-size:17px}
-  .ronda .cancha{color:var(--tinta-2); font-size:14px; grid-column:1}
-  .ronda .gano{grid-column:2; grid-row:1 / span 2; text-align:right; font-size:14px; color:var(--tinta-2)}
-  .ronda .gano b{display:block; color:var(--tinta); font-size:16px}
+  .ronda .fecha{font-weight:700; font-size:15.5px; white-space:nowrap}
   .ronda .cuerpo{border-top:1px solid var(--linea); padding:6px 14px 12px}
   table.sc{width:100%; border-collapse:collapse; font-size:15px}
   table.sc th{font-weight:500; font-size:12px; color:var(--tinta-2); text-align:right; padding:6px 0 4px 8px}
@@ -123,7 +128,7 @@
 
   /* ===== Juego: todo en una vista ===== */
   #dlgJuego{max-width:560px}
-  #dlgJuego .dlg{padding:12px 14px calc(12px + env(safe-area-inset-bottom)); overflow:hidden; display:flex; flex-direction:column; gap:9px; height:100dvh; max-height:100dvh}
+  #dlgJuego .dlg{padding:8px 10px calc(8px + env(safe-area-inset-bottom)); overflow:hidden; display:flex; flex-direction:column; gap:6px; height:100dvh; max-height:100dvh}
   @media (min-width:721px){ #dlgJuego .dlg{height:auto; max-height:96dvh} }
   .j-top{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:13px; color:var(--tinta-2)}
   .j-hoyo{background:var(--fairway); color:#F3EDDA; border-radius:var(--r-m); padding:10px 14px; display:flex; align-items:center; gap:12px}
@@ -132,27 +137,27 @@
   .j-hoyo .meta b{font-size:17px}
   .j-hoyo .nav{display:flex; gap:6px}
   .j-hoyo .nav button{width:40px; height:40px; padding:0; font-size:19px; border-radius:var(--r-s); background:rgba(243,237,218,.16); color:#F3EDDA}
-  .j-hoyo{background:var(--fairway); color:#F3EDDA; border-radius:var(--r-m); padding:8px 10px; display:flex; align-items:center; justify-content:space-between; gap:6px}
+  .j-hoyo{background:var(--fairway); color:#F3EDDA; border-radius:var(--r-m); padding:5px 8px; display:flex; align-items:center; justify-content:space-between; gap:6px}
   .j-hoyo .c{text-align:center; flex:1}
   .j-hoyo .c .n{font-size:26px; font-weight:800; line-height:1.05}
   .j-hoyo .c .e{font-size:11px; opacity:.7}
-  .j-hoyo button{width:42px; height:42px; padding:0; font-size:19px; border-radius:var(--r-s); background:rgba(243,237,218,.16); color:#F3EDDA; flex:0 0 auto}
-  .j-yds{font-size:12px; color:var(--tinta-2); text-align:center; margin-top:-4px}
+  .j-hoyo button{width:38px; height:38px; padding:0; font-size:18px; border-radius:var(--r-s); background:rgba(243,237,218,.16); color:#F3EDDA; flex:0 0 auto}
+  .j-yds{font-size:11.5px; color:var(--tinta-2); text-align:center; margin-top:-3px}
 
   .grilla{overflow-x:auto; -webkit-overflow-scrolling:touch}
   .grilla table{border-collapse:collapse; width:100%; table-layout:fixed}
   .grilla th, .grilla td{border:1px solid var(--linea); padding:0; text-align:center; font-size:15px}
-  .grilla th.et, .grilla td.et{text-align:left; padding:6px 8px; font-size:13px; color:var(--tinta-2); background:var(--campo); width:76px; font-weight:500}
-  .grilla thead th{background:var(--arena); font-weight:700; font-size:14px; padding:7px 2px; letter-spacing:.02em}
-  .grilla td.celda{background:var(--blanco); cursor:pointer; height:40px; font-weight:600}
+  .grilla th.et, .grilla td.et{text-align:left; padding:3px 7px; font-size:12px; color:var(--tinta-2); background:var(--campo); width:70px; font-weight:500}
+  .grilla thead th{background:var(--arena); font-weight:700; font-size:13px; padding:4px 2px; letter-spacing:.02em}
+  .grilla td.celda{background:var(--blanco); cursor:pointer; height:clamp(27px,4.3dvh,40px); font-weight:600}
   .grilla td.celda:hover{background:#F0F3EF}
   .grilla td.celda.sel{background:var(--fairway); color:var(--blanco)}
   .grilla td.celda.vacia{color:var(--linea); font-weight:400}
   .grilla td.celda.sal{font-size:12px; font-weight:600; line-height:1.15}
-  .grilla tr.total td{background:var(--arena); font-weight:800; font-size:16px; height:36px}
+  .grilla tr.total td{background:var(--arena); font-weight:800; font-size:15px; height:30px}
   .grilla .oculto-v{color:var(--tinta-2); font-weight:400}
 
-  .editor{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:9px 11px; min-height:86px}
+  .editor{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:7px 10px; min-height:72px}
   .editor .cab{font-size:13px; color:var(--tinta-2); margin-bottom:7px}
   .editor .cab b{color:var(--tinta); font-size:15px; font-weight:700}
   .ed-stepper{display:flex; align-items:center; justify-content:center; gap:14px}
@@ -164,7 +169,7 @@
   .ed-chips button[aria-pressed=true]{background:var(--fairway); color:var(--blanco); border-color:var(--fairway); font-weight:600}
   .editor .vacio{color:var(--tinta-2); font-size:14px; text-align:center; padding:18px 0}
   .j-pie{display:flex; gap:6px; margin-top:auto}
-  .j-pie button{flex:1; padding:12px 4px; font-size:14px}
+  .j-pie button{flex:1; padding:11px 4px; font-size:14px}
 
   .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:10px; margin-bottom:18px}
   .stat{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:12px 14px}
@@ -193,7 +198,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v7</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v7.2</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnJugadores">Jugadores</button>
@@ -328,9 +333,14 @@
     <p class="hint" id="conexionIntro" style="margin-bottom:12px"></p>
     <div class="fila"><div>
       <label for="apiURL">Dirección de la planilla</label>
-      <input id="apiURL" placeholder="https://script.google.com/macros/s/..../exec" inputmode="url">
+      <textarea id="apiURL" rows="3" placeholder="https://script.google.com/macros/s/CODIGO-LARGO/exec" style="font-size:13px; word-break:break-all"></textarea>
     </div></div>
-    <p class="hint" style="margin-bottom:12px">La consigue quien creó la planilla, en Apps Script → Implementar. Terminá siempre en <b>/exec</b>.</p>
+    <p class="hint" id="conexionDiag" style="margin-bottom:10px"></p>
+    <p class="hint" style="margin-bottom:12px">La consigue quien creó la planilla, en Apps Script → Implementar → Aplicación web. Termina siempre en <b>/exec</b> y es larga: unos 120 caracteres.</p>
+    <div style="display:flex; gap:8px; margin-bottom:12px">
+      <button class="btn-q" id="btnVerGuardada">Ver la guardada</button>
+      <button class="btn-q" id="btnBorrarGuardada">Borrar la guardada</button>
+    </div>
     <div class="acciones"><button data-cerrar="dlgConexion">Cancelar</button><button class="btn-p" id="btnGuardarConexion">Conectar</button></div>
   </div>
 </dialog>
@@ -371,24 +381,24 @@
 
 <script>
 const CANCHAS_BASE = [
-  { id:'rincon', nombre:'El Rincón Club de Campo', ciudad:'Neuquén',
+  { id:'rincon', corto:'El Rincón', nombre:'El Rincón Club de Campo', ciudad:'Neuquén',
     pars:[5,4,3,5,4,4,4,4,3, 3,5,3,4,3,4,4,4,4],
     si:  [3,7,9,1,13,15,11,5,17, 16,2,14,10,18,6,4,12,8],
     tees:{ azul:[490,342,149,452,309,315,318,318,145, 92,412,123,366,154,331,368,315,355],
            blanco:[490,342,149,452,309,315,318,318,145, 92,412,123,366,154,331,368,315,355], rojo:[] } },
-  { id:'comahue', nombre:'Comahue Golf Club', ciudad:'Neuquén',
+  { id:'comahue', corto:'Comahue', nombre:'Comahue Golf Club', ciudad:'Neuquén',
     pars:[5,3,4,4,4,5,4,3,4, 5,3,4,4,3,4,3,4,4],
     si:  [17,7,15,11,5,1,9,13,3, 2,12,10,8,14,18,16,4,6],
     tees:{ azul:[464,179,374,337,364,443,369,167,376, 458,148,317,358,130,365,163,361,377], blanco:[], rojo:[] } },
-  { id:'arroyito', nombre:'Arroyito Country Club', ciudad:'Neuquén',
+  { id:'arroyito', corto:'Arroyito', nombre:'Arroyito Country Club', ciudad:'Neuquén',
     pars:[5,3,5,4,4,4,4,4,3, 5,4,4,4,4,3,3,5,4],
     si:  [3,17,11,13,9,7,5,1,15, 6,4,14,8,2,16,18,12,10],
     tees:{ azul:[507,134,468,333,262,328,351,379,184, 475,378,341,342,326,135,166,468,320], blanco:[], rojo:[] } },
-  { id:'canales', nombre:'Los Canales de Plottier', ciudad:'Plottier',
+  { id:'canales', corto:'Los Canales', nombre:'Los Canales de Plottier', ciudad:'Plottier',
     pars:[4,5,4,4,3,4,5,3,4, 4,4,3,5,4,3,4,5,4],
     si:  [13,3,11,9,17,15,1,7,5, 14,18,16,2,12,10,6,4,8],
     tees:{ azul:[361,529,374,401,175,348,567,209,402, 368,280,173,556,377,207,408,516,380], blanco:[], rojo:[] } },
-  { id:'roca', nombre:'Golf Club General Roca', ciudad:'General Roca',
+  { id:'roca', corto:'Gral. Roca', nombre:'Golf Club General Roca', ciudad:'General Roca',
     pars:[4,5,3,4,3,5,5,3,4, 4,4,4,3,5,5,3,4,4],
     si:  [1,13,15,7,9,5,3,11,17, 10,2,6,18,14,12,16,8,4],
     tees:{ azul:[396,487,168,327,174,422,424,128,347, 371,371,286,146,490,417,155,375,347], blanco:[], rojo:[] } },
@@ -523,22 +533,63 @@ function pintarEstado(){
 
 /* ===== Pantalla de conexión ===== */
 function abrirConexion(primeraVez){
-  document.getElementById('apiURL').value=apiURL();
+  const u=apiURL();
+  document.getElementById('apiURL').value=u;
   document.getElementById('conexionIntro').textContent = primeraVez
-    ? 'Pegá acá la dirección de la planilla del grupo. Se pide una sola vez por celular.'
+    ? 'Pegá acá la dirección de la planilla del grupo. Se pide una sola vez por dispositivo.'
     : 'Dirección de la planilla donde se guardan las rondas del grupo.';
+  diagnostico(u ? 'Guardada ahora: '+revisar(u).mensaje : 'Todavía no hay ninguna dirección guardada en este dispositivo.');
   document.getElementById('dlgConexion').showModal();
 }
+function diagnostico(txt, mal){
+  const el=document.getElementById('conexionDiag');
+  el.textContent=txt||'';
+  el.style.color = mal ? 'var(--bandera)' : 'var(--tinta-2)';
+}
+
+/* Revisa la dirección antes de guardarla. El error más común es pegar una
+   versión abreviada, con puntos suspensivos en el medio: parece bien a simple
+   vista pero no apunta a ningún lado. */
+function revisar(u){
+  u=(u||'').trim();
+  if(!u) return {ok:false, mensaje:'está vacía'};
+  if(/\u2026|\.\.\./.test(u)) return {ok:false, mensaje:'está abreviada (tiene "..." en el medio). Copiala entera desde Apps Script.'};
+  if(!/^https:\/\//.test(u)) return {ok:false, mensaje:'no empieza con https://'};
+  if(/\/macros\/library\//.test(u)) return {ok:false, mensaje:'es la dirección de Biblioteca, no la de Aplicación web.'};
+  if(!/\/exec$/.test(u)) return {ok:false, mensaje:'no termina en /exec'};
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^\/]{30,}\/exec$/.test(u))
+    return {ok:false, mensaje:'tiene una forma rara. Debería ser script.google.com/macros/s/CÓDIGO-LARGO/exec'};
+  return {ok:true, mensaje:'tiene la forma correcta ('+u.length+' caracteres).'};
+}
+
 async function conectar(){
   const u=document.getElementById('apiURL').value.trim();
-  if(!u){ toast('Falta la dirección'); return; }
-  if(!/^https:\/\/script\.google\.com\/.*\/exec$/.test(u)){
-    if(!confirm('Esa dirección no tiene la forma esperada (tiene que terminar en /exec). ¿Guardarla igual?')) return;
-  }
+  const v=revisar(u);
+  if(!v.ok){ diagnostico('La dirección '+v.mensaje, true); return; }
+  diagnostico('Probando la conexión…');
+  const anterior=apiURL();
   setApiURL(u);
-  document.getElementById('dlgConexion').close();
-  await refrescar(); render();
-  toast(modoGuardado==='compartido'?'Conectado':'No se pudo conectar');
+  try{
+    await jsonp({t:Date.now()}, 30000);
+    document.getElementById('dlgConexion').close();
+    await refrescar(); render(); toast('Conectado');
+  }catch(e){
+    setApiURL(anterior||'');
+    diagnostico('La dirección está bien escrita, pero no contestó: '+e.message+
+      '. Probá abrirla en una pestaña nueva de este mismo navegador: si ahí tampoco carga, el problema es del script o de la red.', true);
+  }
+}
+
+// Deja la dirección a la vista para poder copiarla o revisarla desde el celular.
+function verGuardada(){
+  const u=apiURL();
+  if(!u){ toast('No hay ninguna guardada'); return; }
+  prompt('Dirección guardada en este dispositivo:', u);
+}
+function borrarGuardada(){
+  if(!confirm('¿Borrar la dirección guardada en este dispositivo? Vas a tener que volver a conectar.')) return;
+  setApiURL(''); document.getElementById('apiURL').value='';
+  diagnostico('Borrada. Pegá la dirección correcta y tocá Conectar.');
 }
 function copiarLinkGrupo(){
   const u=apiURL(); if(!u){ toast('Conectá primero'); return; }
@@ -554,10 +605,19 @@ function nomCompleto(j){
   const ap=j.apodo?` "${j.apodo}"`:'';
   return `${j.nombre||''}${ap}${j.apellido?' '+j.apellido:''}`.trim()||'—';
 }
+function canchaCorta(c){ return c.corto || (c.nombre||'').split(' ').slice(0,2).join(' '); }
+function apodoOnombre(j){ if(typeof j==='string') j=jugador(j); return j.apodo || j.nombre || '—'; }
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function mesDe(iso){ const m=Number(iso.slice(5,7))-1; return MESES[m]+' '+iso.slice(0,4); }
+function fechaCorta(iso){ const d=new Date(iso+'T12:00:00');
+  return d.toLocaleDateString('es-AR',{weekday:'short',day:'2-digit'}).replace(/\./g,''); }
 function iniciales(j){
   if(typeof j==='string') j=jugador(j);
-  const a=(j.nombre||'').trim()[0]||'', b=(j.apellido||'').trim()[0]||'';
-  return ((a+b)||(j.apodo||'?')[0]).toUpperCase();
+  const n=(j.nombre||'').trim(), ap=(j.apellido||'').trim();
+  // Con apellido: inicial de cada uno. Sin apellido, dos letras del nombre,
+  // así ninguna columna queda con una sola letra suelta.
+  const s = ap ? (n[0]||'')+(ap[0]||'') : (n.slice(0,2) || (j.apodo||'?').slice(0,2));
+  return s.toUpperCase();
 }
 function hoyosDe(t){ t=String(t); return t==='9'?[0,1,2,3,4,5,6,7,8]:t==='9b'?[9,10,11,12,13,14,15,16,17]:Array.from({length:18},(_,i)=>i); }
 function parDe(r){ const c=cancha(r.canchaId); return hoyosDe(r.tramo||'18').reduce((s,i)=>s+(c.pars[i]||4),0); }
@@ -621,30 +681,49 @@ function renderRondas(){
   const rs=[...estado.rondas].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   document.getElementById('resumen').textContent=rs.length?`${rs.length} en total`:'';
   if(!rs.length){ el.innerHTML=`<div class="vacio-s">Sin rondas todavía. Tocá <b>Jugar ronda</b> cuando estén en el tee 1.</div>`; return; }
-  el.innerHTML=rs.map((r,i)=>{
-    const res=resultados(r), c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
-    const gan=res.filter(x=>x.puesto===1).map(x=>nomCompleto(x.jugadorId)).join(' y ');
-    const g=res[0], det=r.scores.some(s=>s.hoyos);
-    const tj=det?`<div class="tarjeta"><table class="tj"><thead>
-      <tr><th class="j">Hoyo</th>${idx.map(h=>`<th>${h+1}</th>`).join('')}<th class="tot">T</th></tr>
-      <tr><th class="j">Par</th>${idx.map(h=>`<th>${c.pars[h]}</th>`).join('')}<th class="tot">${parDe(r)}</th></tr></thead><tbody>
-      ${res.map(f=>`<tr><td class="j">${esc(iniciales(f.jugadorId))}</td>${idx.map((h,k)=>{const v=f.hoyos?(f.hoyos[k]||{}).g:null; return `<td class="${claseHoyo(v,c.pars[h])}">${v||'—'}</td>`;}).join('')}<td class="tot">${f.total}</td></tr>`).join('')}
-      </tbody></table></div>`:'';
-    return `<details class="ronda"${i===0?' open':''}>
-      <summary><span class="fecha">${fmtFecha(r.fecha)}</span>
-      <span class="cancha">${esc(c.nombre)} · ${nHoyos(r)} hoyos${r.viento?' · '+r.viento:''}</span>
-      <span class="gano">Ganó<b>${esc(gan)} <span class="${g&&g.vsPar<0?'bajo':''}">${g?fmtPar(g.vsPar):''}</span></b></span></summary>
-      <div class="cuerpo">
-        <table class="sc"><thead><tr><th>Jugador</th><th>Golpes</th><th>Hcp</th><th>Neto</th><th>vs par</th>${det?'<th>Putts</th>':''}</tr></thead><tbody>
-        ${res.map(f=>{
-          const parcial=f.hoyos&&f.jugados<idx.length;
-          return `<tr><td>${f.puesto}. ${esc(nomCompleto(f.jugadorId))}${parcial?` <span class="hint">(${f.jugados} hoyos)</span>`:''}</td><td>${f.total}</td><td>${f.hcp}</td><td>${f.neto}</td><td class="par ${f.vsPar<0?'bajo':''}">${fmtPar(f.vsPar)}</td>${det?`<td>${suma(f,'putts')??'—'}</td>`:''}</tr>`;
-        }).join('')}
-        </tbody></table>${tj}
-        <div class="pie"><span>${r.nota?'“'+esc(r.nota)+'”':''}</span>
-        <span><button class="btn-q" data-cond="${r.id}">Condiciones</button><button class="btn-q" data-editar="${r.id}">Editar</button><button class="btn-x" data-borrar="${r.id}">Borrar</button></span></div>
-      </div></details>`;
-  }).join('');
+
+  // Agrupadas por mes y cancha, para no leer una lista plana interminable.
+  const grupos=[];
+  rs.forEach(r=>{
+    const clave=r.fecha.slice(0,7)+'|'+r.canchaId;
+    let g=grupos.find(x=>x.clave===clave);
+    if(!g){ g={clave, mes:mesDe(r.fecha), cancha:cancha(r.canchaId), rondas:[]}; grupos.push(g); }
+    g.rondas.push(r);
+  });
+
+  let n=0;
+  el.innerHTML=grupos.map(gr=>`
+    <div class="grupo">
+      <div class="grupo-cab"><span>${esc(canchaCorta(gr.cancha))}</span><span>${gr.mes} · ${gr.rondas.length}</span></div>
+      ${gr.rondas.map(r=>fichaRonda(r, n++===0)).join('')}
+    </div>`).join('');
+}
+
+function fichaRonda(r, abierta){
+  const res=resultados(r), c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
+  const gan=res.filter(x=>x.puesto===1).map(x=>apodoOnombre(x.jugadorId)).join(' y ');
+  const g=res[0], det=r.scores.some(s=>s.hoyos);
+  const tj=det?`<div class="tarjeta"><table class="tj"><thead>
+    <tr><th class="j">Hoyo</th>${idx.map(h=>`<th>${h+1}</th>`).join('')}<th class="tot">T</th></tr>
+    <tr><th class="j">Par</th>${idx.map(h=>`<th>${c.pars[h]}</th>`).join('')}<th class="tot">${parDe(r)}</th></tr></thead><tbody>
+    ${res.map(f=>`<tr><td class="j">${esc(iniciales(f.jugadorId))}</td>${idx.map((h,k)=>{const v=f.hoyos?(f.hoyos[k]||{}).g:null; return `<td class="${claseHoyo(v,c.pars[h])}">${v||'—'}</td>`;}).join('')}<td class="tot">${f.total}</td></tr>`).join('')}
+    </tbody></table></div>`:'';
+  return `<details class="ronda"${abierta?' open':''}>
+    <summary>
+      <div class="l1"><span class="fecha">${fechaCorta(r.fecha)}</span>
+        <span class="gan">${esc(gan)} <b class="${g&&g.vsPar<0?'bajo':''}">${g?fmtPar(g.vsPar):''}</b></span></div>
+      <div class="l2">${nHoyos(r)} hoyos${r.viento?' · '+r.viento:''}${r.nota?' · “'+esc(r.nota)+'”':''}</div>
+    </summary>
+    <div class="cuerpo">
+      <table class="sc"><thead><tr><th>Jugador</th><th>Golpes</th><th>Hcp</th><th>Neto</th><th>vs par</th>${det?'<th>Putts</th>':''}</tr></thead><tbody>
+      ${res.map(f=>{
+        const parcial=f.hoyos&&f.jugados<idx.length;
+        return `<tr><td>${f.puesto}. ${esc(apodoOnombre(f.jugadorId))}${parcial?` <span class="hint">(${f.jugados}h)</span>`:''}</td><td>${f.total}</td><td>${f.hcp}</td><td>${f.neto}</td><td class="par ${f.vsPar<0?'bajo':''}">${fmtPar(f.vsPar)}</td>${det?`<td>${suma(f,'putts')??'—'}</td>`:''}</tr>`;
+      }).join('')}
+      </tbody></table>${tj}
+      <div class="pie"><span></span>
+      <span><button class="btn-q" data-cond="${r.id}">Condiciones</button><button class="btn-q" data-editar="${r.id}">Editar</button><button class="btn-x" data-borrar="${r.id}">Borrar</button></span></div>
+    </div></details>`;
 }
 
 function renderStats(){
@@ -1140,6 +1219,8 @@ document.getElementById('rondas').addEventListener('click',e=>{
 document.getElementById('btnRefrescar').onclick=async()=>{ await refrescar(); render(); toast('Actualizado'); };
 document.getElementById('btnConectar').onclick=()=>abrirConexion(false);
 document.getElementById('btnGuardarConexion').onclick=conectar;
+document.getElementById('btnVerGuardada').onclick=verGuardada;
+document.getElementById('btnBorrarGuardada').onclick=borrarGuardada;
 document.getElementById('btnLinkGrupo').onclick=copiarLinkGrupo;
 // Recarga sola al volver a la pestaña y cada 45 segundos, para que lo que
 // carga uno aparezca en el celular del otro sin tener que hacer nada.
