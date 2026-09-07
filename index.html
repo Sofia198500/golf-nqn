@@ -183,7 +183,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v5.1</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v5.2</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnJugadores">Jugadores</button>
@@ -777,7 +777,6 @@ function cerrarRonda(guardarla){
       for(let i=ini;i<=fin;i++) if(!s.hoyos[i].g) s.hoyos[i].g=c.pars[idx[i]]||4;
     });
     juego.scores=juego.scores.filter(s=>s.hoyos.some(h=>h.g));
-    juego.nota=prompt('Frase del día (opcional)', juego.nota||'')||'';
     const {hoyoActual,...ronda}=juego;
     if(editandoId){ const i=estado.rondas.findIndex(r=>r.id===editandoId); if(i>=0) estado.rondas[i]=ronda; toast('Ronda actualizada'); }
     else { estado.rondas.push(ronda); toast('Ronda guardada'); }
