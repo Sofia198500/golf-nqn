@@ -132,30 +132,39 @@
   .j-hoyo .meta b{font-size:17px}
   .j-hoyo .nav{display:flex; gap:6px}
   .j-hoyo .nav button{width:40px; height:40px; padding:0; font-size:19px; border-radius:var(--r-s); background:rgba(243,237,218,.16); color:#F3EDDA}
-  .j-tabs{display:flex; gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px}
-  .j-tabs button{flex:0 0 auto; padding:7px 13px; border-radius:999px; font-size:14px; background:var(--blanco); border:1px solid var(--linea)}
-  .j-tabs button[aria-pressed=true]{background:var(--fairway); color:var(--blanco); border-color:var(--fairway); font-weight:600}
-  .j-tabs button .p{opacity:.65; font-size:12px; margin-left:5px}
-  .golpes-box{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:10px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px}
-  .golpes-box .et{font-size:13px; color:var(--tinta-2)}
-  .golpes-box .et b{display:block; color:var(--tinta); font-size:16px; font-weight:600}
-  .stepper{display:flex; align-items:center; gap:12px}
-  .stepper button{width:48px; height:48px; padding:0; font-size:24px; font-weight:700; border-radius:50%; background:var(--arena); line-height:1}
-  .stepper .v{min-width:48px; text-align:center; font-size:32px; font-weight:800}
-  .salida-box{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:9px 11px}
-  .salida-box .et{font-size:13px; color:var(--tinta-2); margin-bottom:6px}
-  .salida-chips{display:grid; grid-template-columns:repeat(5,1fr); gap:5px}
-  .salida-chips button{padding:9px 2px; font-size:12px; border-radius:var(--r-s); background:var(--campo); border:1px solid var(--linea); line-height:1.2}
-  .salida-chips button[aria-pressed=true]{background:var(--fairway); color:var(--blanco); border-color:var(--fairway); font-weight:600}
-  .contadores{display:grid; grid-template-columns:repeat(5,1fr); gap:5px}
-  .cont{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:7px 3px; text-align:center}
-  .cont .et{font-size:11px; color:var(--tinta-2); line-height:1.2; margin-bottom:3px}
-  .cont .row{display:flex; align-items:center; justify-content:center; gap:2px}
-  .cont button{width:27px; height:27px; padding:0; font-size:16px; border-radius:50%; background:var(--arena); line-height:1}
-  .cont .v{min-width:18px; font-weight:700; font-size:17px}
-  .cont .v.nulo{color:var(--tinta-2); font-weight:400}
-  .j-pie{display:flex; gap:8px; margin-top:auto}
-  .j-pie button{flex:1; padding:13px 8px; font-size:15px}
+  .j-hoyo{background:var(--fairway); color:#F3EDDA; border-radius:var(--r-m); padding:8px 10px; display:flex; align-items:center; justify-content:space-between; gap:6px}
+  .j-hoyo .c{text-align:center; flex:1}
+  .j-hoyo .c .n{font-size:26px; font-weight:800; line-height:1.05}
+  .j-hoyo .c .e{font-size:11px; opacity:.7}
+  .j-hoyo button{width:42px; height:42px; padding:0; font-size:19px; border-radius:var(--r-s); background:rgba(243,237,218,.16); color:#F3EDDA; flex:0 0 auto}
+  .j-yds{font-size:12px; color:var(--tinta-2); text-align:center; margin-top:-4px}
+
+  .grilla{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  .grilla table{border-collapse:collapse; width:100%; table-layout:fixed}
+  .grilla th, .grilla td{border:1px solid var(--linea); padding:0; text-align:center; font-size:15px}
+  .grilla th.et, .grilla td.et{text-align:left; padding:6px 8px; font-size:13px; color:var(--tinta-2); background:var(--campo); width:76px; font-weight:500}
+  .grilla thead th{background:var(--arena); font-weight:700; font-size:14px; padding:7px 2px; letter-spacing:.02em}
+  .grilla td.celda{background:var(--blanco); cursor:pointer; height:40px; font-weight:600}
+  .grilla td.celda:hover{background:#F0F3EF}
+  .grilla td.celda.sel{background:var(--fairway); color:var(--blanco)}
+  .grilla td.celda.vacia{color:var(--linea); font-weight:400}
+  .grilla td.celda.sal{font-size:12px; font-weight:600; line-height:1.15}
+  .grilla tr.total td{background:var(--arena); font-weight:800; font-size:16px; height:36px}
+  .grilla .oculto-v{color:var(--tinta-2); font-weight:400}
+
+  .editor{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:9px 11px; min-height:86px}
+  .editor .cab{font-size:13px; color:var(--tinta-2); margin-bottom:7px}
+  .editor .cab b{color:var(--tinta); font-size:15px; font-weight:700}
+  .ed-stepper{display:flex; align-items:center; justify-content:center; gap:14px}
+  .ed-stepper button{width:50px; height:50px; padding:0; font-size:26px; font-weight:700; border-radius:50%; background:var(--arena); line-height:1}
+  .ed-stepper .v{min-width:56px; text-align:center; font-size:34px; font-weight:800}
+  .ed-stepper .v.nulo{color:var(--tinta-2); font-weight:400; font-size:26px}
+  .ed-chips{display:grid; grid-template-columns:repeat(5,1fr); gap:5px}
+  .ed-chips button{padding:12px 2px; font-size:12px; border-radius:var(--r-s); background:var(--campo); border:1px solid var(--linea); line-height:1.2}
+  .ed-chips button[aria-pressed=true]{background:var(--fairway); color:var(--blanco); border-color:var(--fairway); font-weight:600}
+  .editor .vacio{color:var(--tinta-2); font-size:14px; text-align:center; padding:18px 0}
+  .j-pie{display:flex; gap:6px; margin-top:auto}
+  .j-pie button{flex:1; padding:12px 4px; font-size:14px}
 
   .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:10px; margin-bottom:18px}
   .stat{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:12px 14px}
@@ -184,7 +193,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v6.1</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v7</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnJugadores">Jugadores</button>
@@ -274,20 +283,20 @@
 
 <dialog id="dlgJuego">
   <div class="dlg">
-    <div class="j-top"><span id="jTitulo"></span><button class="btn-x" id="btnSalirJuego">Salir</button></div>
+    <div class="j-top"><span id="jTitulo"></span>
+      <span style="display:flex; gap:2px"><button class="btn-x" id="btnOjo" aria-pressed="false">Ocultar score</button><button class="btn-x" id="btnSalirJuego">Salir</button></span></div>
     <div class="j-hoyo">
-      <div class="n" id="jNum">1</div>
-      <div class="meta"><div>Par <b id="jPar">4</b> · Hcp <b id="jSi">1</b></div><div id="jYardas" style="opacity:.8; font-size:13px"></div></div>
-      <div class="nav"><button id="jAnt" aria-label="Hoyo anterior">←</button><button id="jSig" aria-label="Hoyo siguiente">→</button></div>
+      <button id="jAnt" aria-label="Hoyo anterior">←</button>
+      <div class="c"><div class="n" id="jNum">1</div><div class="e">Hoyo</div></div>
+      <div class="c"><div class="n" id="jSi">1</div><div class="e">Hcp</div></div>
+      <div class="c"><div class="n" id="jPar">4</div><div class="e">Par</div></div>
+      <button id="jSig" aria-label="Hoyo siguiente">→</button>
     </div>
-    <div class="j-tabs" id="jTabs"></div>
-    <div class="golpes-box">
-      <span class="et">Golpes<b id="jvsPar">—</b></span>
-      <span class="stepper"><button data-a="g-" aria-label="Menos un golpe">−</button><span class="v" id="jGolpes">4</span><button data-a="g+" aria-label="Más un golpe">+</button></span>
-    </div>
-    <div class="salida-box"><div class="et">Salida</div><div class="salida-chips" id="jSalida"></div></div>
-    <div class="contadores" id="jCont"></div>
+    <div class="j-yds" id="jYardas"></div>
+    <div class="grilla"><table id="jGrilla"></table></div>
+    <div class="editor" id="jEditor"></div>
     <div class="j-pie">
+      <button id="btnSumar">Jugadores</button>
       <button id="btnParcial">Parcial</button>
       <button class="btn-p" id="btnTerminar">Terminar</button>
     </div>
@@ -336,10 +345,14 @@
 <dialog id="dlgJugadores">
   <div class="dlg">
     <div class="dlg-cab"><h2>Jugadores</h2><button class="btn-x" data-cerrar="dlgJugadores">Cerrar</button></div>
-    <p class="hint" style="margin-bottom:10px">Tocá el nombre para cambiarlo. Se actualiza en todas las rondas.</p>
+    <p class="hint" style="margin-bottom:10px">En la grilla de carga aparecen las iniciales de nombre y apellido. Todo se puede editar acá.</p>
     <ul class="lista" id="listaJugadores"></ul>
+    <div class="fila c2">
+      <div><label for="jNombre">Nombre</label><input id="jNombre" placeholder="Juan"></div>
+      <div><label for="jApellido">Apellido</label><input id="jApellido" placeholder="Berraondo"></div>
+    </div>
     <div class="fila" style="grid-template-columns:2fr 1fr 1fr auto; align-items:end">
-      <div><label for="jNombre">Nombre</label><input id="jNombre" placeholder="Nombre"></div>
+      <div><label for="jApodo">Apodo</label><input id="jApodo" placeholder="Caballo"></div>
       <div><label for="jHcp">Hcp</label><input id="jHcp" type="number" inputmode="numeric" placeholder="0"></div>
       <div><label for="jTee">Tee</label><select id="jTee"><option value="azul">Azul</option><option value="blanco" selected>Blanco</option><option value="rojo">Rojo</option></select></div>
       <button class="btn-p" id="btnAgregarJugador">Agregar</button>
@@ -389,9 +402,9 @@ const K_CFG='golf-nqn:config';      // jugadores y canchas
 const P_RONDA='golf-nqn:ronda:';    // una clave por ronda
 const uid=()=>Math.random().toString(36).slice(2,9);
 const hoy=()=>new Date().toISOString().slice(0,10);
-let estado={jugadores:[{id:uid(),nombre:'Cristian',hcp:0,tee:'blanco'}],canchas:CANCHAS_BASE,rondas:[]};
+let estado={jugadores:[{id:uid(),nombre:'Cristian',apellido:'',apodo:'',hcp:0,tee:'blanco'}],canchas:CANCHAS_BASE,rondas:[]};
 let modoGuardado='local', errorConexion='', temporadaSel=null, vista='inicio';
-let juego=null, jugTab=0, editandoId=null;
+let juego=null, editandoId=null;
 
 /* ===== Conexión con la planilla de Google =====
    Los datos NO viven en esta página: viven en tu planilla. Por eso la página
@@ -460,7 +473,22 @@ function normalizar(){
   estado.canchas=estado.canchas||[];
   CANCHAS_BASE.forEach(cb=>{ if(!estado.canchas.some(c=>c.id===cb.id)) estado.canchas.push(cb); });
   estado.canchas.forEach(c=>{ if(!c.pars){c.pars=Array(18).fill(4); c.si=Array.from({length:18},(_,i)=>i+1); c.tees={azul:[],blanco:[],rojo:[]};} });
-  (estado.jugadores||[]).forEach(j=>{ if(!j.tee) j.tee='blanco'; });
+  (estado.jugadores||[]).forEach(j=>{
+    if(!j.tee) j.tee='blanco';
+    // Los nombres viejos venían en un solo campo: se separan una vez.
+    if(j.apellido===undefined&&j.apodo===undefined){
+      let t=(j.nombre||'').trim(); let apodo='';
+      const m=t.match(/[""'"]([^""'"]+)[""'"]/);
+      if(m){ apodo=m[1]; t=(t.slice(0,m.index)+' '+t.slice(m.index+m[0].length)).replace(/\s+/g,' ').trim(); }
+      const partes=t.split(' ').filter(Boolean);
+      // El apellido es la última palabra: "Juan Martín Berraondo" → JB, no JM.
+      j.apellido=partes.length>1?partes.pop():'';
+      j.nombre=partes.join(' ')||t||'Jugador';
+      j.apodo=apodo;
+    }
+    if(j.apellido===undefined) j.apellido='';
+    if(j.apodo===undefined) j.apodo='';
+  });
   (estado.rondas||[]).forEach(r=>r.scores.forEach(s=>{ if(s.hoyos) s.hoyos.forEach(h=>{ if(h.drive!==undefined&&h.salida===undefined){h.salida=h.drive; delete h.drive;} }); }));
 }
 function migrar(d){ estado=d; normalizar(); return estado; }
@@ -519,7 +547,18 @@ function copiarLinkGrupo(){
 }
 
 const cancha=id=>estado.canchas.find(c=>c.id===id)||{nombre:'—',ciudad:'',pars:Array(18).fill(4),si:[],tees:{}};
-const jugador=id=>estado.jugadores.find(j=>j.id===id)||{nombre:'—',hcp:0,tee:'blanco'};
+const jugador=id=>estado.jugadores.find(j=>j.id===id)||{nombre:'—',apellido:'',apodo:'',hcp:0,tee:'blanco'};
+// Nombre completo para tablas y listas; iniciales para la grilla de carga.
+function nomCompleto(j){
+  if(typeof j==='string') j=jugador(j);
+  const ap=j.apodo?` "${j.apodo}"`:'';
+  return `${j.nombre||''}${ap}${j.apellido?' '+j.apellido:''}`.trim()||'—';
+}
+function iniciales(j){
+  if(typeof j==='string') j=jugador(j);
+  const a=(j.nombre||'').trim()[0]||'', b=(j.apellido||'').trim()[0]||'';
+  return ((a+b)||(j.apodo||'?')[0]).toUpperCase();
+}
 function hoyosDe(t){ t=String(t); return t==='9'?[0,1,2,3,4,5,6,7,8]:t==='9b'?[9,10,11,12,13,14,15,16,17]:Array.from({length:18},(_,i)=>i); }
 function parDe(r){ const c=cancha(r.canchaId); return hoyosDe(r.tramo||'18').reduce((s,i)=>s+(c.pars[i]||4),0); }
 function nHoyos(r){ return hoyosDe(r.tramo||'18').length; }
@@ -574,7 +613,7 @@ function renderPosiciones(){
   const f=tabla(temporadaSel), el=document.getElementById('posiciones');
   if(!f.length){ el.innerHTML=`<p class="vacio">Sin rondas en ${temporadaSel}.</p>`; return; }
   el.innerHTML=`<table class="pos"><thead><tr><th>Jugador</th><th>Rondas</th><th>Ganó</th><th>Prom.</th><th>Mejor</th><th>Pts</th></tr></thead><tbody>`+
-    f.map((x,i)=>`<tr><td class="nom">${i===0?'<span class="flag"></span>':''}${esc(x.nombre)}</td><td>${x.rondas}</td><td>${x.victorias}</td><td>${fmtPar(Math.round(x.sumaPar/x.rondas))}</td><td>${fmtPar(x.mejor)}</td><td class="pts">${x.puntos}</td></tr>`).join('')+'</tbody></table>';
+    f.map((x,i)=>`<tr><td class="nom">${i===0?'<span class="flag"></span>':''}${esc(nomCompleto(x.id))}</td><td>${x.rondas}</td><td>${x.victorias}</td><td>${fmtPar(Math.round(x.sumaPar/x.rondas))}</td><td>${fmtPar(x.mejor)}</td><td class="pts">${x.puntos}</td></tr>`).join('')+'</tbody></table>';
 }
 function claseHoyo(g,par){ if(!g) return ''; const d=g-par; return d<=-2?'eag':d===-1?'bir':d===0?'':d===1?'bog':'dbl'; }
 function renderRondas(){
@@ -584,12 +623,12 @@ function renderRondas(){
   if(!rs.length){ el.innerHTML=`<div class="vacio-s">Sin rondas todavía. Tocá <b>Jugar ronda</b> cuando estén en el tee 1.</div>`; return; }
   el.innerHTML=rs.map((r,i)=>{
     const res=resultados(r), c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
-    const gan=res.filter(x=>x.puesto===1).map(x=>jugador(x.jugadorId).nombre).join(' y ');
+    const gan=res.filter(x=>x.puesto===1).map(x=>nomCompleto(x.jugadorId)).join(' y ');
     const g=res[0], det=r.scores.some(s=>s.hoyos);
     const tj=det?`<div class="tarjeta"><table class="tj"><thead>
       <tr><th class="j">Hoyo</th>${idx.map(h=>`<th>${h+1}</th>`).join('')}<th class="tot">T</th></tr>
       <tr><th class="j">Par</th>${idx.map(h=>`<th>${c.pars[h]}</th>`).join('')}<th class="tot">${parDe(r)}</th></tr></thead><tbody>
-      ${res.map(f=>`<tr><td class="j">${esc(jugador(f.jugadorId).nombre)}</td>${idx.map((h,k)=>{const v=f.hoyos?(f.hoyos[k]||{}).g:null; return `<td class="${claseHoyo(v,c.pars[h])}">${v||'—'}</td>`;}).join('')}<td class="tot">${f.total}</td></tr>`).join('')}
+      ${res.map(f=>`<tr><td class="j">${esc(iniciales(f.jugadorId))}</td>${idx.map((h,k)=>{const v=f.hoyos?(f.hoyos[k]||{}).g:null; return `<td class="${claseHoyo(v,c.pars[h])}">${v||'—'}</td>`;}).join('')}<td class="tot">${f.total}</td></tr>`).join('')}
       </tbody></table></div>`:'';
     return `<details class="ronda"${i===0?' open':''}>
       <summary><span class="fecha">${fmtFecha(r.fecha)}</span>
@@ -599,7 +638,7 @@ function renderRondas(){
         <table class="sc"><thead><tr><th>Jugador</th><th>Golpes</th><th>Hcp</th><th>Neto</th><th>vs par</th>${det?'<th>Putts</th>':''}</tr></thead><tbody>
         ${res.map(f=>{
           const parcial=f.hoyos&&f.jugados<idx.length;
-          return `<tr><td>${f.puesto}. ${esc(jugador(f.jugadorId).nombre)}${parcial?` <span class="hint">(${f.jugados} hoyos)</span>`:''}</td><td>${f.total}</td><td>${f.hcp}</td><td>${f.neto}</td><td class="par ${f.vsPar<0?'bajo':''}">${fmtPar(f.vsPar)}</td>${det?`<td>${suma(f,'putts')??'—'}</td>`:''}</tr>`;
+          return `<tr><td>${f.puesto}. ${esc(nomCompleto(f.jugadorId))}${parcial?` <span class="hint">(${f.jugados} hoyos)</span>`:''}</td><td>${f.total}</td><td>${f.hcp}</td><td>${f.neto}</td><td class="par ${f.vsPar<0?'bajo':''}">${fmtPar(f.vsPar)}</td>${det?`<td>${suma(f,'putts')??'—'}</td>`:''}</tr>`;
         }).join('')}
         </tbody></table>${tj}
         <div class="pie"><span>${r.nota?'“'+esc(r.nota)+'”':''}</span>
@@ -611,7 +650,7 @@ function renderRondas(){
 function renderStats(){
   const sj=document.getElementById('statJugador'), sc=document.getElementById('statCancha');
   const jSel=sj.value, cSel=sc.value;
-  sj.innerHTML=estado.jugadores.map(j=>`<option value="${j.id}"${j.id===jSel?' selected':''}>${esc(j.nombre)}</option>`).join('');
+  sj.innerHTML=estado.jugadores.map(j=>`<option value="${j.id}"${j.id===jSel?' selected':''}>${esc(nomCompleto(j))}</option>`).join('');
   sc.innerHTML=`<option value="">Todas las canchas</option>`+estado.canchas.map(c=>`<option value="${c.id}"${c.id===cSel?' selected':''}>${esc(c.nombre)}</option>`).join('');
 
   // Por defecto, el último año.
@@ -697,7 +736,7 @@ function abrirSetup(){
   sViento=''; document.querySelectorAll('#sViento button').forEach(b=>b.setAttribute('aria-pressed','false'));
   setTramo('18');
   document.getElementById('sJugadores').innerHTML=estado.jugadores.map(j=>`<tr data-j="${j.id}">
-    <td><input type="checkbox" checked aria-label="Juega ${esc(j.nombre)}"></td><td><b>${esc(j.nombre)}</b></td>
+    <td><input type="checkbox" checked aria-label="Juega ${esc(nomCompleto(j))}"></td><td><b>${esc(nomCompleto(j))}</b></td>
     <td><select class="tee">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></td>
     <td><input type="number" class="hcp" value="${j.hcp}" inputmode="numeric" aria-label="Handicap"></td></tr>`).join('');
   document.getElementById('dlgSetup').showModal();
@@ -713,7 +752,7 @@ function empezar(){
   if(!sc.length){ toast('Marcá al menos un jugador'); return; }
   juego={id:uid(), fecha:document.getElementById('sFecha').value||hoy(), canchaId:document.getElementById('sCancha').value,
     tramo:sTramo, viento:sViento, nota:'', scores:sc, hoyoActual:0};
-  jugTab=0;
+  celdaSel=null; ocultarScore=false;
   document.getElementById('dlgSetup').close();
   document.getElementById('dlgJuego').showModal();
   renderJuego();
@@ -721,34 +760,82 @@ function empezar(){
 function editarRonda(id){
   const r=estado.rondas.find(x=>x.id===id); if(!r) return;
   if(r.scores.some(s=>s.hoyos)){
-    juego=JSON.parse(JSON.stringify(r)); juego.hoyoActual=0; jugTab=0; editandoId=id;
+    juego=JSON.parse(JSON.stringify(r)); juego.hoyoActual=0; celdaSel=null; ocultarScore=false; editandoId=id;
     document.getElementById('dlgJuego').showModal(); renderJuego();
   } else abrirRapida(r);
 }
 
-function actual(){ return juego.scores[jugTab].hoyos[juego.hoyoActual]; }
+let celdaSel=null;   // {campo, si}  celda elegida en la grilla
+let ocultarScore=false;
+
+const FILAS=[['g','Golpes'],['putts','Putts'],['salida','Salida'],['chip','Chips'],['sand','Sand'],['papa','Papas'],['pen','Penal.']];
+
 function renderJuego(){
   const c=cancha(juego.canchaId), idx=hoyosDe(juego.tramo), k=juego.hoyoActual, h=idx[k];
-  const par=c.pars[h]||4, s=juego.scores[jugTab], d=s.hoyos[k];
-  document.getElementById('jTitulo').textContent=`${c.nombre} · hoyo ${k+1} de ${idx.length}${editandoId?' · editando':''}`;
+  const par=c.pars[h]||4;
+  document.getElementById('jTitulo').textContent=`${c.nombre} · ${k+1} de ${idx.length}${editandoId?' · editando':''}`;
   document.getElementById('jNum').textContent=h+1;
   document.getElementById('jPar').textContent=par;
   document.getElementById('jSi').textContent=c.si[h]??'—';
-  const y=(c.tees[s.tee]||[])[h];
-  document.getElementById('jYardas').textContent=y?`${y} yds desde ${s.tee}`:`tee ${s.tee}, sin yardas cargadas`;
+  const yds=[...new Set(juego.scores.map(x=>x.tee))].map(t=>{const y=(c.tees[t]||[])[h]; return y?`${t} ${y} yds`:null;}).filter(Boolean);
+  document.getElementById('jYardas').textContent=yds.join(' · ')||'sin yardas cargadas para estos tees';
   document.getElementById('jAnt').disabled=k===0;
   document.getElementById('jSig').disabled=k===idx.length-1;
-  document.getElementById('jTabs').innerHTML=juego.scores.map((x,i)=>{
+  document.getElementById('btnOjo').textContent=ocultarScore?'Ver score':'Ocultar score';
+  document.getElementById('btnOjo').setAttribute('aria-pressed',String(ocultarScore));
+
+  // Grilla: una fila por dato, una columna por jugador.
+  let html='<thead><tr><th class="et">'+(idx.length?'Hoyo '+(h+1):'')+'</th>'
+    + juego.scores.map(x=>`<th>${esc(iniciales(x.jugadorId))}</th>`).join('')+'</tr></thead><tbody>';
+  FILAS.forEach(([campo,et])=>{
+    html+=`<tr><td class="et">${et}</td>`+juego.scores.map((x,si)=>{
+      const d=x.hoyos[k];
+      const sel=celdaSel&&celdaSel.campo===campo&&celdaSel.si===si?' sel':'';
+      if(campo==='g'){
+        const v = d.g ? (ocultarScore?'·':d.g) : '';
+        return `<td class="celda${sel}${d.g?'':' vacia'}" data-f="g" data-s="${si}">${v||'—'}</td>`;
+      }
+      if(campo==='salida'){
+        const v=d.salida?d.salida.slice(0,4):'';
+        return `<td class="celda sal${sel}${v?'':' vacia'}" data-f="salida" data-s="${si}">${v||'—'}</td>`;
+      }
+      return `<td class="celda${sel}${d[campo]==null?' vacia':''}" data-f="${campo}" data-s="${si}">${d[campo]==null?'—':d[campo]}</td>`;
+    }).join('')+'</tr>';
+  });
+  // Totales acumulados de la vuelta
+  html+='<tr class="total"><td class="et">Total</td>'+juego.scores.map(x=>{
+    const t=x.hoyos.reduce((a,q)=>a+(q.g||0),0);
     const jug=x.hoyos.filter(q=>q.g).length;
     const pj=x.hoyos.reduce((a,q,m)=>a+(q.g?q.g-(c.pars[idx[m]]||4):0),0);
-    return `<button data-tab="${i}" aria-pressed="${i===jugTab}">${esc(jugador(x.jugadorId).nombre)}<span class="p">${jug?fmtPar(pj):'—'}</span></button>`;
-  }).join('')+`<button id="btnSumar" aria-label="Agregar o sacar jugadores" style="font-weight:700">+</button>`;
-  document.getElementById('jGolpes').textContent=d.g||par;
-  document.getElementById('jvsPar').textContent=d.g?fmtPar(d.g-par):'sin cargar';
-  document.getElementById('jSalida').innerHTML=SALIDAS.map(x=>`<button data-salida="${x}" aria-pressed="${d.salida===x}">${x}</button>`).join('');
-  document.getElementById('jCont').innerHTML=CAMPOS.map(([k2,et])=>`<div class="cont">
-    <div class="et">${et}</div><div class="row"><button data-a="${k2}-" aria-label="menos ${et}">−</button><span class="v${d[k2]==null?' nulo':''}">${d[k2]==null?'—':d[k2]}</span><button data-a="${k2}+" aria-label="más ${et}">+</button></div></div>`).join('');
+    if(ocultarScore) return '<td class="oculto-v">·</td>';
+    return `<td>${jug?t:'—'}<div style="font-size:11px; font-weight:500; opacity:.7">${jug?fmtPar(pj):''}</div></td>`;
+  }).join('')+'</tr></tbody>';
+  document.getElementById('jGrilla').innerHTML=html;
+  renderEditor();
 }
+
+function renderEditor(){
+  const ed=document.getElementById('jEditor');
+  if(!celdaSel){ ed.innerHTML='<div class="vacio">Tocá un casillero de la grilla para completarlo.</div>'; return; }
+  const {campo,si}=celdaSel;
+  const c=cancha(juego.canchaId), idx=hoyosDe(juego.tramo), k=juego.hoyoActual;
+  const par=c.pars[idx[k]]||4;
+  const x=juego.scores[si], d=x.hoyos[k];
+  const et=(FILAS.find(f=>f[0]===campo)||['',''])[1];
+  const quien=nomCompleto(x.jugadorId);
+  if(campo==='salida'){
+    ed.innerHTML=`<div class="cab">${et} · <b>${esc(quien)}</b></div>
+      <div class="ed-chips">${SALIDAS.map(v=>`<button data-salida="${v}" aria-pressed="${d.salida===v}">${v}</button>`).join('')}</div>`;
+    return;
+  }
+  const v = campo==='g' ? (d.g||par) : d[campo];
+  const muestra = campo==='g' ? (ocultarScore?'·':v) : (v==null?'—':v);
+  const nulo = campo!=='g' && v==null;
+  const extra = campo==='g' && d.g && !ocultarScore ? ` · ${fmtPar(d.g-par)}` : '';
+  ed.innerHTML=`<div class="cab">${et} · <b>${esc(quien)}</b>${extra}</div>
+    <div class="ed-stepper"><button data-a="${campo}-">−</button><span class="v${nulo?' nulo':''}">${muestra}</span><button data-a="${campo}+">+</button></div>`;
+}
+
 function abrirSumar(){
   const dentro=juego.scores.map(s=>s.jugadorId);
   const fuera=estado.jugadores.filter(j=>!dentro.includes(j.id));
@@ -758,12 +845,12 @@ function abrirSumar(){
     <label>En la ronda</label>
     <ul class="lista">${juego.scores.map((s,i)=>{
       const n=s.hoyos.filter(h=>h.g).length;
-      return `<li><span class="nombre">${esc(jugador(s.jugadorId).nombre)}</span>
+      return `<li><span class="nombre">${esc(nomCompleto(s.jugadorId))}</span>
         <span class="hint">${n} hoyo${n===1?'':'s'}</span>
         ${n===0?`<button class="btn-x" data-sacar="${i}">Sacar</button>`:'<span class="hint">—</span>'}</li>`;
     }).join('')}</ul>
     <label>Sumar a la ronda</label>
-    ${fuera.length?`<ul class="lista">${fuera.map(j=>`<li><span class="nombre">${esc(j.nombre)}</span>
+    ${fuera.length?`<ul class="lista">${fuera.map(j=>`<li><span class="nombre">${esc(nomCompleto(j))}</span>
       <select data-tee-nuevo="${j.id}" style="width:auto">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
       <input class="hcp" type="number" inputmode="numeric" value="${j.hcp}" data-hcp-nuevo="${j.id}" aria-label="Handicap">
       <button class="btn-p" data-sumar="${j.id}" style="padding:7px 14px">Sumar</button></li>`).join('')}</ul>`
@@ -777,8 +864,8 @@ document.getElementById('sumarCuerpo').addEventListener('click',e=>{
     const tee=document.querySelector(`[data-tee-nuevo="${id}"]`).value;
     const hcp=Number(document.querySelector(`[data-hcp-nuevo="${id}"]`).value)||0;
     juego.scores.push({jugadorId:id, tee, hcp, hoyos:hoyosDe(juego.tramo).map(()=>({g:0,putts:null,salida:'',chip:null,sand:null,papa:null,pen:null}))});
-    jugTab=juego.scores.length-1;
-    document.getElementById('dlgSumar').close(); renderJuego(); toast(jugador(id).nombre+' sumado');
+    celdaSel={campo:'g',si:juego.scores.length-1};
+    document.getElementById('dlgSumar').close(); renderJuego(); toast(nomCompleto(id)+' sumado');
     return;
   }
   const rm=e.target.closest('[data-sacar]');
@@ -786,15 +873,20 @@ document.getElementById('sumarCuerpo').addEventListener('click',e=>{
     const i=Number(rm.dataset.sacar);
     if(juego.scores.length<2){ toast('Tiene que quedar al menos un jugador'); return; }
     juego.scores.splice(i,1);
-    if(jugTab>=juego.scores.length) jugTab=juego.scores.length-1;
+    celdaSel=null;
     renderJuego(); abrirSumar();
   }
 });
 document.getElementById('dlgJuego').addEventListener('click',e=>{
-  const b=e.target.closest('button'); if(!b||!juego) return;
+  if(!juego) return;
+  const celda=e.target.closest('.celda');
+  if(celda){ celdaSel={campo:celda.dataset.f, si:Number(celda.dataset.s)}; renderJuego(); return; }
+  const b=e.target.closest('button'); if(!b) return;
   if(b.id==='btnSumar'){ abrirSumar(); return; }
-  if(b.dataset.tab!==undefined){ jugTab=Number(b.dataset.tab); renderJuego(); return; }
-  const c=cancha(juego.canchaId), par=c.pars[hoyosDe(juego.tramo)[juego.hoyoActual]]||4, d=actual();
+  if(b.id==='btnOjo'){ ocultarScore=!ocultarScore; renderJuego(); return; }
+  if(!celdaSel) return;
+  const c=cancha(juego.canchaId), par=c.pars[hoyosDe(juego.tramo)[juego.hoyoActual]]||4;
+  const d=juego.scores[celdaSel.si].hoyos[juego.hoyoActual];
   if(b.dataset.salida){ d.salida=d.salida===b.dataset.salida?'':b.dataset.salida; renderJuego(); return; }
   if(b.dataset.a){
     const campo=b.dataset.a.slice(0,-1), sig=b.dataset.a.slice(-1);
@@ -805,14 +897,14 @@ document.getElementById('dlgJuego').addEventListener('click',e=>{
     renderJuego();
   }
 });
-document.getElementById('jAnt').onclick=()=>{ if(juego.hoyoActual>0){juego.hoyoActual--; renderJuego();} };
-document.getElementById('jSig').onclick=()=>{ if(juego.hoyoActual<hoyosDe(juego.tramo).length-1){juego.hoyoActual++; renderJuego();} };
+document.getElementById('jAnt').onclick=()=>{ if(juego.hoyoActual>0){juego.hoyoActual--; if(celdaSel) celdaSel={campo:'g',si:celdaSel.si}; renderJuego();} };
+document.getElementById('jSig').onclick=()=>{ if(juego.hoyoActual<hoyosDe(juego.tramo).length-1){juego.hoyoActual++; if(celdaSel) celdaSel={campo:'g',si:celdaSel.si}; renderJuego();} };
 document.getElementById('btnParcial').onclick=()=>{
   const c=cancha(juego.canchaId), idx=hoyosDe(juego.tramo);
   alert('Parcial\n\n'+juego.scores.map(s=>{
     const t=s.hoyos.reduce((a,h)=>a+(h.g||0),0), n=s.hoyos.filter(h=>h.g).length;
     const p=s.hoyos.reduce((a,h,m)=>a+(h.g?h.g-(c.pars[idx[m]]||4):0),0);
-    return `${jugador(s.jugadorId).nombre}: ${t} en ${n} hoyos (${fmtPar(p)})`;
+    return `${nomCompleto(s.jugadorId)}: ${t} en ${n} hoyos (${fmtPar(p)})`;
   }).join('\n'));
 };
 function cerrarRonda(guardarla){
@@ -847,7 +939,7 @@ function abrirRapida(r){
   document.getElementById('rCancha').innerHTML=estado.canchas.map(c=>`<option value="${c.id}"${r&&r.canchaId===c.id?' selected':''}>${esc(c.nombre)}</option>`).join('');
   document.getElementById('rScores').innerHTML=estado.jugadores.map(j=>{
     const s=r?r.scores.find(x=>x.jugadorId===j.id):null;
-    return `<tr data-j="${j.id}"><td><input type="checkbox"${!r||s?' checked':''}></td><td><b>${esc(j.nombre)}</b></td>
+    return `<tr data-j="${j.id}"><td><input type="checkbox"${!r||s?' checked':''}></td><td><b>${esc(nomCompleto(j))}</b></td>
       <td><input type="number" class="golpes" inputmode="numeric" value="${s?totalGolpes(s):''}" placeholder="—"></td>
       <td><input type="number" class="hcp" value="${s?s.hcp:j.hcp}" inputmode="numeric"></td><td class="neto">—</td></tr>`;
   }).join('');
@@ -870,7 +962,7 @@ function guardarRapida(){
   for(const tr of document.querySelectorAll('#rScores tr')){
     if(!tr.querySelector('input[type=checkbox]').checked) continue;
     const g=Number(tr.querySelector('.golpes').value);
-    if(!g){ toast('Falta el score de '+jugador(tr.dataset.j).nombre); return; }
+    if(!g){ toast('Falta el score de '+nomCompleto(tr.dataset.j)); return; }
     sc.push({jugadorId:tr.dataset.j, golpes:g, hcp:Number(tr.querySelector('.hcp').value)||0});
   }
   if(!sc.length){ toast('Marcá al menos un jugador'); return; }
@@ -885,16 +977,22 @@ function guardarRapida(){
 
 function abrirJugadores(){ renderJugadores(); document.getElementById('dlgJugadores').showModal(); }
 function renderJugadores(){
-  document.getElementById('listaJugadores').innerHTML=estado.jugadores.map(j=>`<li>
-    <input class="nombre" value="${esc(j.nombre)}" data-nom="${j.id}" aria-label="Nombre">
+  document.getElementById('listaJugadores').innerHTML=estado.jugadores.map(j=>`<li style="flex-wrap:wrap">
+    <span style="flex:0 0 30px; font-weight:800; font-size:15px">${esc(iniciales(j))}</span>
+    <input style="flex:1 1 90px; min-width:70px" value="${esc(j.nombre||'')}" data-nom="${j.id}" placeholder="Nombre" aria-label="Nombre">
+    <input style="flex:1 1 90px; min-width:70px" value="${esc(j.apellido||'')}" data-ape="${j.id}" placeholder="Apellido" aria-label="Apellido">
+    <input style="flex:1 1 80px; min-width:64px" value="${esc(j.apodo||'')}" data-apo="${j.id}" placeholder="Apodo" aria-label="Apodo">
     <select data-tee="${j.id}" style="width:auto">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
     <input class="hcp" type="number" inputmode="numeric" value="${j.hcp}" data-hcp="${j.id}" aria-label="Handicap">
     <button class="btn-x" data-quitar-j="${j.id}">Quitar</button></li>`).join('')||'<li class="hint">Sin jugadores.</li>';
 }
 function agregarJugador(){
   const n=document.getElementById('jNombre').value.trim(); if(!n) return;
-  estado.jugadores.push({id:uid(),nombre:n,hcp:Number(document.getElementById('jHcp').value)||0,tee:document.getElementById('jTee').value});
-  document.getElementById('jNombre').value=''; document.getElementById('jHcp').value='';
+  estado.jugadores.push({id:uid(), nombre:n,
+    apellido:document.getElementById('jApellido').value.trim(),
+    apodo:document.getElementById('jApodo').value.trim(),
+    hcp:Number(document.getElementById('jHcp').value)||0, tee:document.getElementById('jTee').value});
+  ['jNombre','jApellido','jApodo','jHcp'].forEach(i=>document.getElementById(i).value='');
   guardar(); renderJugadores(); render(); document.getElementById('jNombre').focus();
 }
 
@@ -970,12 +1068,14 @@ document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
 });
 document.getElementById('jNombre').addEventListener('keydown',e=>{ if(e.key==='Enter') agregarJugador(); });
 document.getElementById('listaJugadores').addEventListener('change',e=>{
-  const el=e.target, id=el.dataset.nom||el.dataset.hcp||el.dataset.tee;
+  const el=e.target, id=el.dataset.nom||el.dataset.ape||el.dataset.apo||el.dataset.hcp||el.dataset.tee;
   const j=estado.jugadores.find(x=>x.id===id); if(!j) return;
   if(el.dataset.nom){ const v=el.value.trim(); if(!v){ el.value=j.nombre; return; } j.nombre=v; }
+  else if(el.dataset.ape) j.apellido=el.value.trim();
+  else if(el.dataset.apo) j.apodo=el.value.trim();
   else if(el.dataset.hcp) j.hcp=Number(el.value)||0;
   else j.tee=el.value;
-  guardar(); render();
+  guardar(); renderJugadores(); render();
 });
 document.getElementById('listaJugadores').addEventListener('click',e=>{
   const b=e.target.closest('[data-quitar-j]'); if(!b) return;
