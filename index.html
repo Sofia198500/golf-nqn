@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Golf NQN — Salidas con amigos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --campo:#F4F6F1; --tinta:#1B2B21; --tinta-2:#5C6B61; --linea:#D5DBD3;
+    --fairway:#245A38; --fairway-osc:#183F27; --arena:#EFE6CC; --bandera:#C6402C;
+    --blanco:#FFFFFF; --r-s:6px; --r-m:10px; --r-l:16px;
+    --font:"Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0; background:var(--campo); color:var(--tinta); font-family:var(--font); font-size:16px; line-height:1.5; font-variant-numeric:tabular-nums}
+  main{max-width:720px; margin:0 auto; padding:20px 16px 96px}
+  h1,h2,h3{margin:0; line-height:1.15; font-weight:700}
+  h1{font-size:34px; letter-spacing:-0.02em; font-variation-settings:"wdth" 88}
+  h2{font-size:20px; margin-bottom:10px}
+  p{margin:0}
+  button{font:inherit; cursor:pointer; border:0; border-radius:var(--r-m); padding:10px 16px; background:var(--arena); color:var(--tinta)}
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--fairway); outline-offset:2px}
+  button:disabled{opacity:.35}
+  .btn-p{background:var(--fairway); color:var(--blanco); font-weight:600}
+  .btn-p:hover{background:var(--fairway-osc)}
+  .btn-q{background:transparent; color:var(--tinta-2); padding:6px 8px; text-decoration:underline; text-underline-offset:3px}
+  .btn-x{background:transparent; color:var(--tinta-2); padding:4px 8px}
+  .btn-x:hover{color:var(--bandera)}
+  input,select,textarea{font:inherit; color:var(--tinta); background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-s); padding:9px 10px; width:100%}
+  input[type=number]{-moz-appearance:textfield}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+  textarea{resize:vertical; min-height:60px}
+  label{display:block; font-size:14px; color:var(--tinta-2); margin-bottom:4px}
+  .hint{font-size:13px; color:var(--tinta-2)}
+  header{display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:22px}
+  header .sub{color:var(--tinta-2); font-size:14px; margin-top:4px}
+  header .sub b{color:var(--tinta); font-weight:600}
+  nav.tabs{display:flex; gap:4px; background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:4px; margin-bottom:20px}
+  nav.tabs button{flex:1; background:transparent; padding:9px 6px; border-radius:var(--r-s); font-size:15px}
+  nav.tabs button[aria-selected=true]{background:var(--fairway); color:var(--blanco); font-weight:600}
+
+  .tablero{background:var(--fairway); color:#F3EDDA; border-radius:var(--r-l); padding:16px 16px 12px; margin-bottom:24px; box-shadow:0 1px 0 var(--fairway-osc) inset, 0 12px 28px -18px rgba(24,63,39,.55)}
+  .tablero-cab{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:8px}
+  .tablero-cab h2{color:#F3EDDA; font-size:15px; font-weight:500; margin:0}
+  .tablero-cab select{width:auto; background:transparent; color:#F3EDDA; border-color:rgba(243,237,218,.35); padding:4px 8px; font-size:14px}
+  .tablero-cab select option{color:var(--tinta)}
+  table.pos{width:100%; border-collapse:collapse}
+  table.pos th{font-weight:500; font-size:12px; color:rgba(243,237,218,.7); text-align:right; padding:6px 6px 6px 0; border-bottom:1px solid rgba(243,237,218,.25)}
+  table.pos th:first-child, table.pos td:first-child{text-align:left; padding-left:0}
+  table.pos td{padding:9px 6px 9px 0; text-align:right; border-bottom:1px solid rgba(243,237,218,.12); font-size:17px}
+  table.pos tr:last-child td{border-bottom:0}
+  table.pos td.nom{font-weight:600; font-size:18px}
+  table.pos td.pts{font-weight:800; font-size:22px}
+  .flag{width:10px; height:12px; display:inline-block; position:relative; margin-right:8px; vertical-align:-1px}
+  .flag::before{content:""; position:absolute; left:0; top:0; width:2px; height:12px; background:#F3EDDA}
+  .flag::after{content:""; position:absolute; left:2px; top:0; border-left:8px solid var(--bandera); border-bottom:5px solid transparent; border-top:5px solid transparent; height:0}
+  .tablero .vacio{padding:18px 0 10px; color:rgba(243,237,218,.8)}
+  .tablero .regla{font-size:12px; color:rgba(243,237,218,.6); margin-top:10px}
+
+  .seccion{margin-bottom:26px}
+  .seccion-cab{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:10px}
+  .ronda{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); margin-bottom:10px; overflow:hidden}
+  .ronda summary{list-style:none; cursor:pointer; padding:12px 14px; display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center}
+  .ronda summary::-webkit-details-marker{display:none}
+  .ronda .fecha{font-weight:700; font-size:17px}
+  .ronda .cancha{color:var(--tinta-2); font-size:14px; grid-column:1}
+  .ronda .gano{grid-column:2; grid-row:1 / span 2; text-align:right; font-size:14px; color:var(--tinta-2)}
+  .ronda .gano b{display:block; color:var(--tinta); font-size:16px}
+  .ronda .cuerpo{border-top:1px solid var(--linea); padding:6px 14px 12px}
+  table.sc{width:100%; border-collapse:collapse; font-size:15px}
+  table.sc th{font-weight:500; font-size:12px; color:var(--tinta-2); text-align:right; padding:6px 0 4px 8px}
+  table.sc th:first-child, table.sc td:first-child{text-align:left; padding-left:0}
+  table.sc td{padding:6px 0 6px 8px; text-align:right; border-top:1px solid var(--linea)}
+  table.sc td.par{font-weight:700}
+  .bajo{color:var(--bandera)}
+  .ronda .pie{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:10px; font-size:14px; color:var(--tinta-2); flex-wrap:wrap}
+  .vacio-s{background:var(--blanco); border:1px dashed var(--linea); border-radius:var(--r-m); padding:22px 16px; text-align:center; color:var(--tinta-2)}
+
+  .tarjeta{overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:8px}
+  table.tj{border-collapse:collapse; font-size:13px; min-width:100%}
+  table.tj th, table.tj td{border:1px solid var(--linea); padding:4px 6px; text-align:center; white-space:nowrap}
+  table.tj th{background:var(--arena); font-weight:600; font-size:12px}
+  table.tj td.j{text-align:left; font-weight:600; background:var(--blanco); position:sticky; left:0; z-index:1}
+  table.tj th.j{text-align:left; position:sticky; left:0; z-index:2}
+  table.tj .eag{background:#F6D9A8; font-weight:700}
+  table.tj .bir{background:#F2C6BC; font-weight:700}
+  table.tj .bog{background:#E7EAE6}
+  table.tj .dbl{background:#D4DAD3}
+  table.tj .tot{background:var(--arena); font-weight:700}
+
+  .barra{position:fixed; left:0; right:0; bottom:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(to top, var(--campo) 70%, rgba(244,246,241,0)); display:flex; justify-content:center; gap:8px; pointer-events:none}
+  .barra button{pointer-events:auto; padding:14px 22px; font-size:16px; border-radius:var(--r-l); box-shadow:0 8px 20px -10px rgba(24,63,39,.6)}
+
+  dialog{border:0; border-radius:var(--r-l) var(--r-l) 0 0; padding:0; width:100%; max-width:720px; margin:auto auto 0; background:var(--campo); color:var(--tinta)}
+  dialog::backdrop{background:rgba(27,43,33,.45)}
+  @media (min-width:721px){ dialog{border-radius:var(--r-l); margin:auto} }
+  .dlg{padding:18px 16px calc(18px + env(safe-area-inset-bottom)); overflow:auto; max-height:96dvh}
+  .dlg-cab{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px}
+  .fila{display:grid; gap:10px; margin-bottom:12px}
+  .fila.c2{grid-template-columns:1fr 1fr}
+  .toggle{display:flex; border:1px solid var(--linea); border-radius:var(--r-s); overflow:hidden; background:var(--blanco)}
+  .toggle button{flex:1; border-radius:0; background:transparent; padding:9px 6px}
+  .toggle button[aria-pressed=true]{background:var(--fairway); color:var(--blanco)}
+  .chips{display:flex; gap:6px; flex-wrap:wrap}
+  .chips button{padding:7px 12px; border-radius:var(--r-s); font-size:14px; background:var(--blanco); border:1px solid var(--linea)}
+  .chips button[aria-pressed=true]{background:var(--fairway); color:var(--blanco); border-color:var(--fairway)}
+  table.carga{width:100%; border-collapse:collapse; margin-bottom:12px}
+  table.carga th{font-weight:500; font-size:12px; color:var(--tinta-2); text-align:left; padding:4px 6px 4px 0}
+  table.carga td{padding:4px 6px 4px 0; vertical-align:middle}
+  table.carga input[type=number]{width:70px; text-align:center}
+  table.carga select{width:auto; padding:6px 8px}
+  table.carga input[type=checkbox]{width:20px; height:20px; accent-color:var(--fairway)}
+  table.carga .neto{color:var(--tinta-2); font-size:14px; white-space:nowrap}
+  .acciones{display:flex; gap:10px; justify-content:flex-end; margin-top:14px}
+  .lista{list-style:none; padding:0; margin:0 0 14px}
+  .lista li{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--linea)}
+  .lista .nombre{flex:1; min-width:0}
+  .lista input{width:auto}
+  .lista .hcp{width:60px; text-align:center}
+
+  /* ===== Juego: todo en una vista ===== */
+  #dlgJuego{max-width:560px}
+  #dlgJuego .dlg{padding:12px 14px calc(12px + env(safe-area-inset-bottom)); overflow:hidden; display:flex; flex-direction:column; gap:9px; height:100dvh; max-height:100dvh}
+  @media (min-width:721px){ #dlgJuego .dlg{height:auto; max-height:96dvh} }
+  .j-top{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:13px; color:var(--tinta-2)}
+  .j-hoyo{background:var(--fairway); color:#F3EDDA; border-radius:var(--r-m); padding:10px 14px; display:flex; align-items:center; gap:12px}
+  .j-hoyo .n{font-size:38px; font-weight:800; line-height:1; font-variation-settings:"wdth" 85; min-width:44px}
+  .j-hoyo .meta{flex:1; font-size:14px; line-height:1.45}
+  .j-hoyo .meta b{font-size:17px}
+  .j-hoyo .nav{display:flex; gap:6px}
+  .j-hoyo .nav button{width:40px; height:40px; padding:0; font-size:19px; border-radius:var(--r-s); background:rgba(243,237,218,.16); color:#F3EDDA}
+  .j-tabs{display:flex; gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px}
+  .j-tabs button{flex:0 0 auto; padding:7px 13px; border-radius:999px; font-size:14px; background:var(--blanco); border:1px solid var(--linea)}
+  .j-tabs button[aria-pressed=true]{background:var(--fairway); color:var(--blanco); border-color:var(--fairway); font-weight:600}
+  .j-tabs button .p{opacity:.65; font-size:12px; margin-left:5px}
+  .golpes-box{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:10px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .golpes-box .et{font-size:13px; color:var(--tinta-2)}
+  .golpes-box .et b{display:block; color:var(--tinta); font-size:16px; font-weight:600}
+  .stepper{display:flex; align-items:center; gap:12px}
+  .stepper button{width:48px; height:48px; padding:0; font-size:24px; font-weight:700; border-radius:50%; background:var(--arena); line-height:1}
+  .stepper .v{min-width:48px; text-align:center; font-size:32px; font-weight:800}
+  .salida-box{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:9px 11px}
+  .salida-box .et{font-size:13px; color:var(--tinta-2); margin-bottom:6px}
+  .salida-chips{display:grid; grid-template-columns:repeat(5,1fr); gap:5px}
+  .salida-chips button{padding:9px 2px; font-size:12px; border-radius:var(--r-s); background:var(--campo); border:1px solid var(--linea); line-height:1.2}
+  .salida-chips button[aria-pressed=true]{background:var(--fairway); color:var(--blanco); border-color:var(--fairway); font-weight:600}
+  .contadores{display:grid; grid-template-columns:repeat(5,1fr); gap:5px}
+  .cont{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:7px 3px; text-align:center}
+  .cont .et{font-size:11px; color:var(--tinta-2); line-height:1.2; margin-bottom:3px}
+  .cont .row{display:flex; align-items:center; justify-content:center; gap:2px}
+  .cont button{width:27px; height:27px; padding:0; font-size:16px; border-radius:50%; background:var(--arena); line-height:1}
+  .cont .v{min-width:18px; font-weight:700; font-size:17px}
+  .j-pie{display:flex; gap:8px; margin-top:auto}
+  .j-pie button{flex:1; padding:13px 8px; font-size:15px}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:10px; margin-bottom:18px}
+  .stat{background:var(--blanco); border:1px solid var(--linea); border-radius:var(--r-m); padding:12px 14px}
+  .stat .v{font-size:28px; font-weight:800; line-height:1.1}
+  .stat .l{font-size:13px; color:var(--tinta-2); margin-top:2px}
+  .barras{margin-bottom:18px}
+  .barra-fila{display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:14px}
+  .barra-fila .et{flex:0 0 96px; color:var(--tinta-2)}
+  .barra-fila .tr{flex:1; height:16px; background:var(--linea); border-radius:var(--r-s); overflow:hidden}
+  .barra-fila .tr i{display:block; height:100%; background:var(--fairway)}
+  .barra-fila .n{flex:0 0 46px; text-align:right; font-weight:600}
+
+  footer{margin-top:32px; font-size:13px; color:var(--tinta-2); display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center}
+  .estado{display:inline-flex; align-items:center; gap:6px}
+  .estado::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--linea)}
+  .estado.ok::before{background:var(--fairway)}
+  .estado.local::before{background:var(--bandera)}
+  .toast{position:fixed; left:50%; bottom:92px; transform:translateX(-50%); background:var(--tinta); color:var(--campo); padding:10px 16px; border-radius:var(--r-m); font-size:15px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:99}
+  .toast.on{opacity:1}
+  @media (prefers-reduced-motion:reduce){ .toast{transition:none} }
+  .oculto{display:none !important}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Golf NQN</h1>
+      <p class="sub">Salidas con amigos · <b>v5.1</b> · 07/09/2026</p>
+    </div>
+    <div style="display:flex; gap:4px">
+      <button class="btn-x" id="btnJugadores">Jugadores</button>
+      <button class="btn-x" id="btnCanchas">Canchas</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-vista="inicio">Tabla</button>
+    <button role="tab" aria-selected="false" data-vista="stats">Mi juego</button>
+  </nav>
+
+  <div id="vInicio">
+    <section class="tablero">
+      <div class="tablero-cab"><h2>Tabla de posiciones</h2><select id="temporada" aria-label="Temporada"></select></div>
+      <div id="posiciones"></div>
+      <p class="regla">Puntos por ronda: 3 al primero, 2 al segundo, 1 al tercero, según score neto.</p>
+    </section>
+    <section class="seccion">
+      <div class="seccion-cab"><h2>Rondas</h2><span class="hint" id="resumen"></span></div>
+      <div id="rondas"></div>
+    </section>
+  </div>
+
+  <div id="vStats" class="oculto">
+    <div class="fila c2">
+      <div><label for="statJugador">Jugador</label><select id="statJugador"></select></div>
+      <div><label for="statCancha">Cancha</label><select id="statCancha"></select></div>
+    </div>
+    <div id="statsCuerpo"></div>
+  </div>
+
+  <footer>
+    <span class="estado" id="estado">Cargando…</span>
+    <button class="btn-q" id="btnRefrescar">Actualizar</button>
+    <button class="btn-q" id="btnConectar">Conectar</button>
+    <button class="btn-q" id="btnLinkGrupo">Copiar link del grupo</button>
+    <button class="btn-q" id="btnExportar">Exportar respaldo</button>
+    <button class="btn-q" id="btnImportar">Importar respaldo</button>
+    <input type="file" id="archivoImportar" accept="application/json" hidden>
+  </footer>
+</main>
+
+<div class="barra" id="barraInicio">
+  <button class="btn-p" id="btnJugar">Jugar ronda</button>
+  <button id="btnRapida">Carga rápida</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="dlgSetup">
+  <div class="dlg">
+    <div class="dlg-cab"><h2 id="setupTitulo">Arrancar ronda</h2><button class="btn-x" data-cerrar="dlgSetup">Cerrar</button></div>
+    <div class="fila c2">
+      <div><label for="sFecha">Fecha</label><input type="date" id="sFecha"></div>
+      <div><label>Hoyos</label><div class="toggle" id="sHoyos">
+        <button type="button" data-v="9">1 a 9</button><button type="button" data-v="9b">10 a 18</button><button type="button" data-v="18" aria-pressed="true">18</button>
+      </div></div>
+    </div>
+    <div class="fila"><div><label for="sCancha">Cancha</label><select id="sCancha"></select></div></div>
+    <div class="fila"><div><label>Viento</label><div class="chips" id="sViento">
+      <button type="button" data-v="Calmo">Calmo</button><button type="button" data-v="Ventoso">Ventoso</button><button type="button" data-v="Vendaval">Vendaval</button>
+    </div></div></div>
+    <label>Quiénes juegan y desde qué tee</label>
+    <table class="carga"><tbody id="sJugadores"></tbody></table>
+    <div class="acciones"><button data-cerrar="dlgSetup">Cancelar</button><button class="btn-p" id="btnEmpezar">Empezar</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlgRapida">
+  <div class="dlg">
+    <div class="dlg-cab"><h2 id="rTitulo">Carga rápida</h2><button class="btn-x" data-cerrar="dlgRapida">Cerrar</button></div>
+    <p class="hint" style="margin-bottom:12px">Solo el total de golpes, sin estadísticas de juego.</p>
+    <div class="fila c2">
+      <div><label for="rFecha">Fecha</label><input type="date" id="rFecha"></div>
+      <div><label>Hoyos</label><div class="toggle" id="rHoyos"><button type="button" data-v="9">9</button><button type="button" data-v="18" aria-pressed="true">18</button></div></div>
+    </div>
+    <div class="fila"><div><label for="rCancha">Cancha</label><select id="rCancha"></select></div></div>
+    <table class="carga"><thead><tr><th></th><th>Jugador</th><th>Golpes</th><th>Hcp</th><th>Neto</th></tr></thead><tbody id="rScores"></tbody></table>
+    <div class="fila"><div><label for="rNota">Frase del día</label><textarea id="rNota" placeholder="Opcional"></textarea></div></div>
+    <div class="acciones"><button data-cerrar="dlgRapida">Cancelar</button><button class="btn-p" id="btnGuardarRapida">Guardar</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlgJuego">
+  <div class="dlg">
+    <div class="j-top"><span id="jTitulo"></span><button class="btn-x" id="btnSalirJuego">Salir</button></div>
+    <div class="j-hoyo">
+      <div class="n" id="jNum">1</div>
+      <div class="meta"><div>Par <b id="jPar">4</b> · Hcp <b id="jSi">1</b></div><div id="jYardas" style="opacity:.8; font-size:13px"></div></div>
+      <div class="nav"><button id="jAnt" aria-label="Hoyo anterior">←</button><button id="jSig" aria-label="Hoyo siguiente">→</button></div>
+    </div>
+    <div class="j-tabs" id="jTabs"></div>
+    <div class="golpes-box">
+      <span class="et">Golpes<b id="jvsPar">—</b></span>
+      <span class="stepper"><button data-a="g-" aria-label="Menos un golpe">−</button><span class="v" id="jGolpes">4</span><button data-a="g+" aria-label="Más un golpe">+</button></span>
+    </div>
+    <div class="salida-box"><div class="et">Salida</div><div class="salida-chips" id="jSalida"></div></div>
+    <div class="contadores" id="jCont"></div>
+    <div class="j-pie">
+      <button id="btnParcial">Parcial</button>
+      <button class="btn-p" id="btnTerminar">Terminar</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlgConexion">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Conectar la planilla</h2><button class="btn-x" data-cerrar="dlgConexion">Cerrar</button></div>
+    <p class="hint" id="conexionIntro" style="margin-bottom:12px"></p>
+    <div class="fila"><div>
+      <label for="apiURL">Dirección de la planilla</label>
+      <input id="apiURL" placeholder="https://script.google.com/macros/s/..../exec" inputmode="url">
+    </div></div>
+    <p class="hint" style="margin-bottom:12px">La consigue quien creó la planilla, en Apps Script → Implementar. Terminá siempre en <b>/exec</b>.</p>
+    <div class="acciones"><button data-cerrar="dlgConexion">Cancelar</button><button class="btn-p" id="btnGuardarConexion">Conectar</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlgSumar">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Jugadores de la ronda</h2><button class="btn-x" data-cerrar="dlgSumar">Cerrar</button></div>
+    <div id="sumarCuerpo"></div>
+  </div>
+</dialog>
+
+<dialog id="dlgJugadores">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Jugadores</h2><button class="btn-x" data-cerrar="dlgJugadores">Cerrar</button></div>
+    <p class="hint" style="margin-bottom:10px">Tocá el nombre para cambiarlo. Se actualiza en todas las rondas.</p>
+    <ul class="lista" id="listaJugadores"></ul>
+    <div class="fila" style="grid-template-columns:2fr 1fr 1fr auto; align-items:end">
+      <div><label for="jNombre">Nombre</label><input id="jNombre" placeholder="Nombre"></div>
+      <div><label for="jHcp">Hcp</label><input id="jHcp" type="number" inputmode="numeric" placeholder="0"></div>
+      <div><label for="jTee">Tee</label><select id="jTee"><option value="azul">Azul</option><option value="blanco" selected>Blanco</option><option value="rojo">Rojo</option></select></div>
+      <button class="btn-p" id="btnAgregarJugador">Agregar</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlgCanchas">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Canchas</h2><button class="btn-x" data-cerrar="dlgCanchas">Cerrar</button></div>
+    <div class="fila"><div><label for="cSel">Ver cancha</label><select id="cSel"></select></div></div>
+    <div id="cDetalle"></div>
+    <p class="hint" style="margin-top:12px">Tocá cualquier número para corregirlo contra la tarjeta del club.</p>
+  </div>
+</dialog>
+
+<script>
+const CANCHAS_BASE = [
+  { id:'rincon', nombre:'El Rincón Club de Campo', ciudad:'Neuquén',
+    pars:[5,4,3,5,4,4,4,4,3, 3,5,3,4,3,4,4,4,4],
+    si:  [3,7,9,1,13,15,11,5,17, 16,2,14,10,18,6,4,12,8],
+    tees:{ azul:[490,342,149,452,309,315,318,318,145, 92,412,123,366,154,331,368,315,355],
+           blanco:[490,342,149,452,309,315,318,318,145, 92,412,123,366,154,331,368,315,355], rojo:[] } },
+  { id:'comahue', nombre:'Comahue Golf Club', ciudad:'Neuquén',
+    pars:[5,3,4,4,4,5,4,3,4, 5,3,4,4,3,4,3,4,4],
+    si:  [17,7,15,11,5,1,9,13,3, 2,12,10,8,14,18,16,4,6],
+    tees:{ azul:[464,179,374,337,364,443,369,167,376, 458,148,317,358,130,365,163,361,377], blanco:[], rojo:[] } },
+  { id:'arroyito', nombre:'Arroyito Country Club', ciudad:'Neuquén',
+    pars:[5,3,5,4,4,4,4,4,3, 5,4,4,4,4,3,3,5,4],
+    si:  [3,17,11,13,9,7,5,1,15, 6,4,14,8,2,16,18,12,10],
+    tees:{ azul:[507,134,468,333,262,328,351,379,184, 475,378,341,342,326,135,166,468,320], blanco:[], rojo:[] } },
+  { id:'canales', nombre:'Los Canales de Plottier', ciudad:'Plottier',
+    pars:[4,5,4,4,3,4,5,3,4, 4,4,3,5,4,3,4,5,4],
+    si:  [13,3,11,9,17,15,1,7,5, 14,18,16,2,12,10,6,4,8],
+    tees:{ azul:[361,529,374,401,175,348,567,209,402, 368,280,173,556,377,207,408,516,380], blanco:[], rojo:[] } },
+  { id:'roca', nombre:'Golf Club General Roca', ciudad:'General Roca',
+    pars:[4,5,3,4,3,5,5,3,4, 4,4,4,3,5,5,3,4,4],
+    si:  [1,13,15,7,9,5,3,11,17, 10,2,6,18,14,12,16,8,4],
+    tees:{ azul:[396,487,168,327,174,422,424,128,347, 371,371,286,146,490,417,155,375,347], blanco:[], rojo:[] } },
+];
+const SALIDAS=['Fairway','Larga','Corta','Derecha','Izquierda'];
+const CAMPOS=[['putts','Putts'],['chip','Chips'],['sand','Sand'],['papa','Papas'],['pen','Penal.']];
+
+const KEY='golf-nqn:estado';        // formato viejo, solo para migrar
+const K_CFG='golf-nqn:config';      // jugadores y canchas
+const P_RONDA='golf-nqn:ronda:';    // una clave por ronda
+const uid=()=>Math.random().toString(36).slice(2,9);
+const hoy=()=>new Date().toISOString().slice(0,10);
+let estado={jugadores:[{id:uid(),nombre:'Cristian',hcp:0,tee:'blanco'}],canchas:CANCHAS_BASE,rondas:[]};
+let modoGuardado='local', errorConexion='', temporadaSel=null, vista='inicio';
+let juego=null, jugTab=0, editandoId=null;
+
+/* ===== Conexión con la planilla de Google =====
+   Los datos NO viven en esta página: viven en tu planilla. Por eso la página
+   se puede mejorar, mover o volver a publicar sin perder una sola ronda. */
+const K_API='golf-nqn:api';
+function apiURL(){
+  const p=new URLSearchParams(location.search).get('api');
+  if(p){ try{ localStorage.setItem(K_API,p); }catch(e){} return p; }
+  try{ return localStorage.getItem(K_API)||''; }catch(e){ return ''; }
+}
+function setApiURL(u){ try{ localStorage.setItem(K_API,u); }catch(e){} }
+
+/* Apps Script redirige a otro dominio y el navegador corta un fetch normal.
+   La forma que sí funciona es pedir por JSONP: se inserta un <script> que
+   trae la respuesta envuelta en una función. */
+function jsonp(params, timeoutMs){
+  return new Promise((resolve,reject)=>{
+    const u=apiURL(); if(!u){ reject(new Error('sin conexión configurada')); return; }
+    const cb='golfcb_'+Math.random().toString(36).slice(2);
+    const s=document.createElement('script');
+    let listo=false;
+    const limpiar=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} s.remove(); clearTimeout(t); };
+    const t=setTimeout(()=>{ if(!listo){ limpiar(); reject(new Error('la planilla no respondió')); } }, timeoutMs||20000);
+    window[cb]=d=>{ listo=true; limpiar(); (d&&d.ok)?resolve(d):reject(new Error((d&&d.error)||'error del servidor')); };
+    s.onerror=()=>{ if(!listo){ limpiar(); reject(new Error('no se pudo contactar la planilla')); } };
+    const qs=Object.entries({...params, callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    s.src=u+'?'+qs;
+    document.head.appendChild(s);
+  });
+}
+
+// Manda una orden partida en pedazos, porque una URL no puede ser muy larga.
+async function api(cuerpo){
+  const txt=JSON.stringify(cuerpo);
+  const TAM=1200;
+  const lote=Math.random().toString(36).slice(2);
+  const total=Math.ceil(txt.length/TAM)||1;
+  let r;
+  for(let i=0;i<total;i++){
+    r=await jsonp({accion:'escribir', lote, parte:i, total, datos:txt.slice(i*TAM,(i+1)*TAM)});
+  }
+  return r;
+}
+
+async function cargar(){
+  if(!apiURL()){ modoGuardado='local'; pintarEstado(); abrirConexion(true); return; }
+  await refrescar(true);
+}
+
+async function refrescar(primeraVez){
+  if(!apiURL()){ modoGuardado='local'; pintarEstado(); return; }
+  try{
+    const d=await jsonp({t:Date.now()});
+    if(d.config){ if(d.config.jugadores) estado.jugadores=d.config.jugadores; if(d.config.canchas) estado.canchas=d.config.canchas; }
+    estado.rondas=d.rondas||[];
+    modoGuardado='compartido';
+    normalizar();
+  }catch(e){
+    modoGuardado='error'; errorConexion=e.message;
+  }
+  pintarEstado();
+  if(!primeraVez) render();
+}
+
+function normalizar(){
+  estado.canchas=estado.canchas||[];
+  CANCHAS_BASE.forEach(cb=>{ if(!estado.canchas.some(c=>c.id===cb.id)) estado.canchas.push(cb); });
+  estado.canchas.forEach(c=>{ if(!c.pars){c.pars=Array(18).fill(4); c.si=Array.from({length:18},(_,i)=>i+1); c.tees={azul:[],blanco:[],rojo:[]};} });
+  (estado.jugadores||[]).forEach(j=>{ if(!j.tee) j.tee='blanco'; });
+  (estado.rondas||[]).forEach(r=>r.scores.forEach(s=>{ if(s.hoyos) s.hoyos.forEach(h=>{ if(h.drive!==undefined&&h.salida===undefined){h.salida=h.drive; delete h.drive;} }); }));
+}
+function migrar(d){ estado=d; normalizar(); return estado; }
+
+async function guardarConfig(){
+  if(!apiURL()){ pintarEstado(); return; }
+  try{ await api({accion:'guardarConfig', config:{jugadores:estado.jugadores,canchas:estado.canchas}}); }
+  catch(e){ toast('No se pudo guardar: '+e.message); }
+  pintarEstado();
+}
+async function guardarRonda(r){
+  if(!apiURL()){ pintarEstado(); return; }
+  try{ await api({accion:'guardarRonda', ronda:r}); }
+  catch(e){ toast('No se pudo guardar la ronda: '+e.message); }
+  pintarEstado();
+}
+async function eliminarRonda(id){
+  if(!apiURL()) return;
+  try{ await api({accion:'borrarRonda', id}); }catch(e){ toast('No se pudo borrar: '+e.message); }
+}
+const guardar=guardarConfig;
+
+function pintarEstado(){
+  const el=document.getElementById('estado');
+  if(modoGuardado==='compartido'){
+    el.className='estado ok';
+    el.textContent=`Conectado · ${estado.rondas.length} ronda${estado.rondas.length===1?'':'s'} en el grupo`;
+  } else if(modoGuardado==='error'){
+    el.className='estado local'; el.textContent='Sin conexión con la planilla: '+(errorConexion||'');
+  } else {el.className='estado local'; el.textContent='Sin conectar. Tocá Conectar para enlazar la planilla.';}
+}
+
+/* ===== Pantalla de conexión ===== */
+function abrirConexion(primeraVez){
+  document.getElementById('apiURL').value=apiURL();
+  document.getElementById('conexionIntro').textContent = primeraVez
+    ? 'Pegá acá la dirección de la planilla del grupo. Se pide una sola vez por celular.'
+    : 'Dirección de la planilla donde se guardan las rondas del grupo.';
+  document.getElementById('dlgConexion').showModal();
+}
+async function conectar(){
+  const u=document.getElementById('apiURL').value.trim();
+  if(!u){ toast('Falta la dirección'); return; }
+  if(!/^https:\/\/script\.google\.com\/.*\/exec$/.test(u)){
+    if(!confirm('Esa dirección no tiene la forma esperada (tiene que terminar en /exec). ¿Guardarla igual?')) return;
+  }
+  setApiURL(u);
+  document.getElementById('dlgConexion').close();
+  await refrescar(); render();
+  toast(modoGuardado==='compartido'?'Conectado':'No se pudo conectar');
+}
+function copiarLinkGrupo(){
+  const u=apiURL(); if(!u){ toast('Conectá primero'); return; }
+  const link=location.origin+location.pathname+'?api='+encodeURIComponent(u);
+  navigator.clipboard.writeText(link).then(()=>toast('Link copiado: mandalo al grupo'),()=>prompt('Copiá este link:',link));
+}
+
+const cancha=id=>estado.canchas.find(c=>c.id===id)||{nombre:'—',ciudad:'',pars:Array(18).fill(4),si:[],tees:{}};
+const jugador=id=>estado.jugadores.find(j=>j.id===id)||{nombre:'—',hcp:0,tee:'blanco'};
+function hoyosDe(t){ t=String(t); return t==='9'?[0,1,2,3,4,5,6,7,8]:t==='9b'?[9,10,11,12,13,14,15,16,17]:Array.from({length:18},(_,i)=>i); }
+function parDe(r){ const c=cancha(r.canchaId); return hoyosDe(r.tramo||'18').reduce((s,i)=>s+(c.pars[i]||4),0); }
+function nHoyos(r){ return hoyosDe(r.tramo||'18').length; }
+function neto(g,h,n){ return g-Math.round(h*(n/18)); }
+function fmtPar(n){ return n===0?'E':(n>0?'+'+n:'−'+Math.abs(n)); }
+function fmtFecha(iso){ return new Date(iso+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'2-digit',month:'short'}).replace(/\./g,''); }
+function esc(s){ return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2200); }
+function totalGolpes(s){ return s.hoyos?s.hoyos.reduce((a,h)=>a+(h.g||0),0):(s.golpes||0); }
+function suma(s,c){ return s.hoyos?s.hoyos.reduce((a,h)=>a+(h[c]||0),0):null; }
+function resultados(r){
+  const c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
+  const f=r.scores.map(s=>{
+    // Cada jugador se mide contra el par de LOS HOYOS QUE JUGÓ, no contra el
+    // par completo: así el que se suma en el 10 no aparece con un score irreal.
+    let par, n;
+    if(s.hoyos){ n=0; par=0; s.hoyos.forEach((h,k)=>{ if(h.g){n++; par+=c.pars[idx[k]]||4;} }); }
+    else { n=nHoyos(r); par=parDe(r); }
+    const g=totalGolpes(s), nt=neto(g,s.hcp,n||1);
+    return {...s,total:g,neto:nt,vsPar:nt-par,jugados:n,parPropio:par};
+  });
+  f.sort((a,b)=>a.vsPar-b.vsPar);
+  let p=0; f.forEach((x,i)=>{ if(i===0||x.vsPar!==f[i-1].vsPar) p=i+1; x.puesto=p; });
+  return f;
+}
+const PUNTOS={1:3,2:2,3:1};
+function tabla(t){
+  const acc={}; estado.jugadores.forEach(j=>acc[j.id]={id:j.id,nombre:j.nombre,rondas:0,victorias:0,puntos:0,sumaPar:0,mejor:null});
+  estado.rondas.filter(r=>r.fecha.slice(0,4)===t).forEach(r=>resultados(r).forEach(f=>{
+    const a=acc[f.jugadorId]; if(!a) return;
+    a.rondas++; a.puntos+=PUNTOS[f.puesto]||0; a.sumaPar+=f.vsPar;
+    if(f.puesto===1) a.victorias++;
+    if(a.mejor===null||f.vsPar<a.mejor) a.mejor=f.vsPar;
+  }));
+  return Object.values(acc).filter(a=>a.rondas>0).sort((a,b)=>b.puntos-a.puntos||(a.sumaPar/a.rondas)-(b.sumaPar/b.rondas));
+}
+
+function render(){
+  document.getElementById('vInicio').classList.toggle('oculto',vista!=='inicio');
+  document.getElementById('vStats').classList.toggle('oculto',vista!=='stats');
+  document.getElementById('barraInicio').classList.toggle('oculto',vista!=='inicio');
+  if(vista==='inicio'){renderTemporadas(); renderPosiciones(); renderRondas();} else renderStats();
+}
+function renderTemporadas(){
+  const sel=document.getElementById('temporada');
+  const a=[...new Set(estado.rondas.map(r=>r.fecha.slice(0,4)))].sort().reverse();
+  if(!a.length) a.push(hoy().slice(0,4));
+  if(!temporadaSel||!a.includes(temporadaSel)) temporadaSel=a[0];
+  sel.innerHTML=a.map(x=>`<option value="${x}"${x===temporadaSel?' selected':''}>Temporada ${x}</option>`).join('');
+}
+function renderPosiciones(){
+  const f=tabla(temporadaSel), el=document.getElementById('posiciones');
+  if(!f.length){ el.innerHTML=`<p class="vacio">Sin rondas en ${temporadaSel}.</p>`; return; }
+  el.innerHTML=`<table class="pos"><thead><tr><th>Jugador</th><th>Rondas</th><th>Ganó</th><th>Prom.</th><th>Mejor</th><th>Pts</th></tr></thead><tbody>`+
+    f.map((x,i)=>`<tr><td class="nom">${i===0?'<span class="flag"></span>':''}${esc(x.nombre)}</td><td>${x.rondas}</td><td>${x.victorias}</td><td>${fmtPar(Math.round(x.sumaPar/x.rondas))}</td><td>${fmtPar(x.mejor)}</td><td class="pts">${x.puntos}</td></tr>`).join('')+'</tbody></table>';
+}
+function claseHoyo(g,par){ if(!g) return ''; const d=g-par; return d<=-2?'eag':d===-1?'bir':d===0?'':d===1?'bog':'dbl'; }
+function renderRondas(){
+  const el=document.getElementById('rondas');
+  const rs=[...estado.rondas].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  document.getElementById('resumen').textContent=rs.length?`${rs.length} en total`:'';
+  if(!rs.length){ el.innerHTML=`<div class="vacio-s">Sin rondas todavía. Tocá <b>Jugar ronda</b> cuando estén en el tee 1.</div>`; return; }
+  el.innerHTML=rs.map((r,i)=>{
+    const res=resultados(r), c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
+    const gan=res.filter(x=>x.puesto===1).map(x=>jugador(x.jugadorId).nombre).join(' y ');
+    const g=res[0], det=r.scores.some(s=>s.hoyos);
+    const tj=det?`<div class="tarjeta"><table class="tj"><thead>
+      <tr><th class="j">Hoyo</th>${idx.map(h=>`<th>${h+1}</th>`).join('')}<th class="tot">T</th></tr>
+      <tr><th class="j">Par</th>${idx.map(h=>`<th>${c.pars[h]}</th>`).join('')}<th class="tot">${parDe(r)}</th></tr></thead><tbody>
+      ${res.map(f=>`<tr><td class="j">${esc(jugador(f.jugadorId).nombre)}</td>${idx.map((h,k)=>{const v=f.hoyos?(f.hoyos[k]||{}).g:null; return `<td class="${claseHoyo(v,c.pars[h])}">${v||'—'}</td>`;}).join('')}<td class="tot">${f.total}</td></tr>`).join('')}
+      </tbody></table></div>`:'';
+    return `<details class="ronda"${i===0?' open':''}>
+      <summary><span class="fecha">${fmtFecha(r.fecha)}</span>
+      <span class="cancha">${esc(c.nombre)} · ${nHoyos(r)} hoyos${r.viento?' · '+r.viento:''}</span>
+      <span class="gano">Ganó<b>${esc(gan)} <span class="${g&&g.vsPar<0?'bajo':''}">${g?fmtPar(g.vsPar):''}</span></b></span></summary>
+      <div class="cuerpo">
+        <table class="sc"><thead><tr><th>Jugador</th><th>Golpes</th><th>Hcp</th><th>Neto</th><th>vs par</th>${det?'<th>Putts</th>':''}</tr></thead><tbody>
+        ${res.map(f=>{
+          const parcial=f.hoyos&&f.jugados<idx.length;
+          return `<tr><td>${f.puesto}. ${esc(jugador(f.jugadorId).nombre)}${parcial?` <span class="hint">(${f.jugados} hoyos)</span>`:''}</td><td>${f.total}</td><td>${f.hcp}</td><td>${f.neto}</td><td class="par ${f.vsPar<0?'bajo':''}">${fmtPar(f.vsPar)}</td>${det?`<td>${suma(f,'putts')??'—'}</td>`:''}</tr>`;
+        }).join('')}
+        </tbody></table>${tj}
+        <div class="pie"><span>${r.nota?'“'+esc(r.nota)+'”':''}</span>
+        <span><button class="btn-q" data-editar="${r.id}">Editar</button><button class="btn-x" data-borrar="${r.id}">Borrar</button></span></div>
+      </div></details>`;
+  }).join('');
+}
+
+function renderStats(){
+  const sj=document.getElementById('statJugador'), sc=document.getElementById('statCancha');
+  const jSel=sj.value, cSel=sc.value;
+  sj.innerHTML=estado.jugadores.map(j=>`<option value="${j.id}"${j.id===jSel?' selected':''}>${esc(j.nombre)}</option>`).join('');
+  sc.innerHTML=`<option value="">Todas las canchas</option>`+estado.canchas.map(c=>`<option value="${c.id}"${c.id===cSel?' selected':''}>${esc(c.nombre)}</option>`).join('');
+  const jid=sj.value||(estado.jugadores[0]||{}).id, cid=sc.value;
+  const el=document.getElementById('statsCuerpo');
+  const rs=estado.rondas.filter(r=>(!cid||r.canchaId===cid)&&r.scores.some(s=>s.jugadorId===jid&&s.hoyos));
+  if(!rs.length){ el.innerHTML=`<div class="vacio-s">Sin rondas cargadas hoyo por hoyo${cid?' en esta cancha':''} para este jugador.</div>`; return; }
+  let hoyos=0,golpes=0,putts=0,chips=0,sand=0,papas=0,pen=0,gir=0,fw=0,fwOp=0;
+  const sal={}; SALIDAS.forEach(s=>sal[s]=0);
+  const dist={eagle:0,birdie:0,par:0,bogey:0,doble:0};
+  const porHoyo={};
+  rs.forEach(r=>{
+    const c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
+    const s=r.scores.find(x=>x.jugadorId===jid);
+    s.hoyos.forEach((h,k)=>{
+      if(!h.g) return;
+      const par=c.pars[idx[k]]||4, d=h.g-par;
+      hoyos++; golpes+=h.g; putts+=h.putts||0; chips+=h.chip||0; sand+=h.sand||0; papas+=h.papa||0; pen+=h.pen||0;
+      if((h.g-(h.putts||0))<=par-2) gir++;
+      if(par>3){ fwOp++; if(h.salida==='Fairway') fw++; }
+      if(h.salida) sal[h.salida]=(sal[h.salida]||0)+1;
+      if(d<=-2) dist.eagle++; else if(d===-1) dist.birdie++; else if(d===0) dist.par++; else if(d===1) dist.bogey++; else dist.doble++;
+      const hn=idx[k]+1; porHoyo[hn]=porHoyo[hn]||{s:0,n:0,par}; porHoyo[hn].s+=d; porHoyo[hn].n++;
+    });
+  });
+  const pct=(a,b)=>b?Math.round(a*100/b)+'%':'—';
+  const p1=(a,b)=>b?(a/b).toFixed(1):'—';
+  const totSal=Object.values(sal).reduce((a,b)=>a+b,0)||1;
+  let peor='';
+  if(cid){
+    const o=Object.entries(porHoyo).map(([h,v])=>({h,prom:v.s/v.n,par:v.par})).sort((a,b)=>b.prom-a.prom);
+    if(o.length>1) peor=`<p class="hint" style="margin-bottom:18px">Acá el hoyo que más te cuesta es el <b>${o[0].h}</b> (par ${o[0].par}), ${fmtPar(Math.round(o[0].prom*10)/10)} de promedio. El más amable, el <b>${o[o.length-1].h}</b>.</p>`;
+  }
+  el.innerHTML=`
+    <div class="stat-grid">
+      <div class="stat"><div class="v">${rs.length}</div><div class="l">rondas con detalle</div></div>
+      <div class="stat"><div class="v">${p1(golpes,hoyos)}</div><div class="l">golpes por hoyo</div></div>
+      <div class="stat"><div class="v">${p1(putts,hoyos)}</div><div class="l">putts por hoyo</div></div>
+      <div class="stat"><div class="v">${pct(fw,fwOp)}</div><div class="l">fairways (par 4 y 5)</div></div>
+      <div class="stat"><div class="v">${pct(gir,hoyos)}</div><div class="l">greens en regulación</div></div>
+      <div class="stat"><div class="v">${p1(chips+sand,hoyos)}</div><div class="l">chips + sand por hoyo</div></div>
+      <div class="stat"><div class="v">${papas}</div><div class="l">papas</div></div>
+      <div class="stat"><div class="v">${pen}</div><div class="l">penalidades</div></div>
+    </div>
+    ${peor}
+    <h3 style="font-size:16px; margin-bottom:8px">Dónde termina la salida</h3>
+    <div class="barras">${SALIDAS.map(s=>`<div class="barra-fila"><span class="et">${s}</span><span class="tr"><i style="width:${sal[s]*100/totSal}%"></i></span><span class="n">${pct(sal[s],totSal)}</span></div>`).join('')}</div>
+    <h3 style="font-size:16px; margin-bottom:8px">Resultado por hoyo</h3>
+    <div class="barras">${[['Eagle o mejor','eagle'],['Birdie','birdie'],['Par','par'],['Bogey','bogey'],['Doble o más','doble']].map(([et,k])=>
+      `<div class="barra-fila"><span class="et">${et}</span><span class="tr"><i style="width:${dist[k]*100/(hoyos||1)}%"></i></span><span class="n">${dist[k]}</span></div>`).join('')}</div>
+    <p class="hint">Green en regulación: llegaste al green en par−2 golpes o menos, sin contar putts.</p>`;
+}
+
+let sTramo='18', sViento='';
+function abrirSetup(){
+  if(!estado.jugadores.length){ toast('Cargá jugadores primero'); abrirJugadores(); return; }
+  editandoId=null;
+  document.getElementById('setupTitulo').textContent='Arrancar ronda';
+  document.getElementById('sFecha').value=hoy();
+  document.getElementById('sCancha').innerHTML=estado.canchas.map(c=>`<option value="${c.id}">${esc(c.nombre)} — ${esc(c.ciudad)}</option>`).join('');
+  sViento=''; document.querySelectorAll('#sViento button').forEach(b=>b.setAttribute('aria-pressed','false'));
+  setTramo('18');
+  document.getElementById('sJugadores').innerHTML=estado.jugadores.map(j=>`<tr data-j="${j.id}">
+    <td><input type="checkbox" checked aria-label="Juega ${esc(j.nombre)}"></td><td><b>${esc(j.nombre)}</b></td>
+    <td><select class="tee">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></td>
+    <td><input type="number" class="hcp" value="${j.hcp}" inputmode="numeric" aria-label="Handicap"></td></tr>`).join('');
+  document.getElementById('dlgSetup').showModal();
+}
+function setTramo(v){ sTramo=v; document.querySelectorAll('#sHoyos button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v))); }
+function empezar(){
+  const sc=[];
+  document.querySelectorAll('#sJugadores tr').forEach(tr=>{
+    if(!tr.querySelector('input[type=checkbox]').checked) return;
+    sc.push({jugadorId:tr.dataset.j, tee:tr.querySelector('.tee').value, hcp:Number(tr.querySelector('.hcp').value)||0,
+      hoyos:hoyosDe(sTramo).map(()=>({g:0,putts:0,salida:'',chip:0,sand:0,papa:0,pen:0}))});
+  });
+  if(!sc.length){ toast('Marcá al menos un jugador'); return; }
+  juego={id:uid(), fecha:document.getElementById('sFecha').value||hoy(), canchaId:document.getElementById('sCancha').value,
+    tramo:sTramo, viento:sViento, nota:'', scores:sc, hoyoActual:0};
+  jugTab=0;
+  document.getElementById('dlgSetup').close();
+  document.getElementById('dlgJuego').showModal();
+  renderJuego();
+}
+function editarRonda(id){
+  const r=estado.rondas.find(x=>x.id===id); if(!r) return;
+  if(r.scores.some(s=>s.hoyos)){
+    juego=JSON.parse(JSON.stringify(r)); juego.hoyoActual=0; jugTab=0; editandoId=id;
+    document.getElementById('dlgJuego').showModal(); renderJuego();
+  } else abrirRapida(r);
+}
+
+function actual(){ return juego.scores[jugTab].hoyos[juego.hoyoActual]; }
+function renderJuego(){
+  const c=cancha(juego.canchaId), idx=hoyosDe(juego.tramo), k=juego.hoyoActual, h=idx[k];
+  const par=c.pars[h]||4, s=juego.scores[jugTab], d=s.hoyos[k];
+  document.getElementById('jTitulo').textContent=`${c.nombre} · hoyo ${k+1} de ${idx.length}${editandoId?' · editando':''}`;
+  document.getElementById('jNum').textContent=h+1;
+  document.getElementById('jPar').textContent=par;
+  document.getElementById('jSi').textContent=c.si[h]??'—';
+  const y=(c.tees[s.tee]||[])[h];
+  document.getElementById('jYardas').textContent=y?`${y} yds desde ${s.tee}`:`tee ${s.tee}, sin yardas cargadas`;
+  document.getElementById('jAnt').disabled=k===0;
+  document.getElementById('jSig').disabled=k===idx.length-1;
+  document.getElementById('jTabs').innerHTML=juego.scores.map((x,i)=>{
+    const jug=x.hoyos.filter(q=>q.g).length;
+    const pj=x.hoyos.reduce((a,q,m)=>a+(q.g?q.g-(c.pars[idx[m]]||4):0),0);
+    return `<button data-tab="${i}" aria-pressed="${i===jugTab}">${esc(jugador(x.jugadorId).nombre)}<span class="p">${jug?fmtPar(pj):'—'}</span></button>`;
+  }).join('')+`<button id="btnSumar" aria-label="Agregar o sacar jugadores" style="font-weight:700">+</button>`;
+  document.getElementById('jGolpes').textContent=d.g||par;
+  document.getElementById('jvsPar').textContent=d.g?fmtPar(d.g-par):'sin cargar';
+  document.getElementById('jSalida').innerHTML=SALIDAS.map(x=>`<button data-salida="${x}" aria-pressed="${d.salida===x}">${x}</button>`).join('');
+  document.getElementById('jCont').innerHTML=CAMPOS.map(([k2,et])=>`<div class="cont">
+    <div class="et">${et}</div><div class="row"><button data-a="${k2}-" aria-label="menos ${et}">−</button><span class="v">${d[k2]||0}</span><button data-a="${k2}+" aria-label="más ${et}">+</button></div></div>`).join('');
+}
+function abrirSumar(){
+  const dentro=juego.scores.map(s=>s.jugadorId);
+  const fuera=estado.jugadores.filter(j=>!dentro.includes(j.id));
+  const idx=hoyosDe(juego.tramo);
+  document.getElementById('sumarCuerpo').innerHTML=`
+    <p class="hint" style="margin-bottom:10px">Se puede sumar gente en cualquier momento. Al que entra tarde solo se le cuentan los hoyos que jugó.</p>
+    <label>En la ronda</label>
+    <ul class="lista">${juego.scores.map((s,i)=>{
+      const n=s.hoyos.filter(h=>h.g).length;
+      return `<li><span class="nombre">${esc(jugador(s.jugadorId).nombre)}</span>
+        <span class="hint">${n} hoyo${n===1?'':'s'}</span>
+        ${n===0?`<button class="btn-x" data-sacar="${i}">Sacar</button>`:'<span class="hint">—</span>'}</li>`;
+    }).join('')}</ul>
+    <label>Sumar a la ronda</label>
+    ${fuera.length?`<ul class="lista">${fuera.map(j=>`<li><span class="nombre">${esc(j.nombre)}</span>
+      <select data-tee-nuevo="${j.id}" style="width:auto">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
+      <input class="hcp" type="number" inputmode="numeric" value="${j.hcp}" data-hcp-nuevo="${j.id}" aria-label="Handicap">
+      <button class="btn-p" data-sumar="${j.id}" style="padding:7px 14px">Sumar</button></li>`).join('')}</ul>`
+      :'<p class="hint" style="margin-bottom:12px">Ya están todos. Para crear a alguien nuevo, cerrá la ronda y usá Jugadores.</p>'}`;
+  document.getElementById('dlgSumar').showModal();
+}
+document.getElementById('sumarCuerpo').addEventListener('click',e=>{
+  const add=e.target.closest('[data-sumar]');
+  if(add){
+    const id=add.dataset.sumar;
+    const tee=document.querySelector(`[data-tee-nuevo="${id}"]`).value;
+    const hcp=Number(document.querySelector(`[data-hcp-nuevo="${id}"]`).value)||0;
+    juego.scores.push({jugadorId:id, tee, hcp, hoyos:hoyosDe(juego.tramo).map(()=>({g:0,putts:0,salida:'',chip:0,sand:0,papa:0,pen:0}))});
+    jugTab=juego.scores.length-1;
+    document.getElementById('dlgSumar').close(); renderJuego(); toast(jugador(id).nombre+' sumado');
+    return;
+  }
+  const rm=e.target.closest('[data-sacar]');
+  if(rm){
+    const i=Number(rm.dataset.sacar);
+    if(juego.scores.length<2){ toast('Tiene que quedar al menos un jugador'); return; }
+    juego.scores.splice(i,1);
+    if(jugTab>=juego.scores.length) jugTab=juego.scores.length-1;
+    renderJuego(); abrirSumar();
+  }
+});
+document.getElementById('dlgJuego').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b||!juego) return;
+  if(b.id==='btnSumar'){ abrirSumar(); return; }
+  if(b.dataset.tab!==undefined){ jugTab=Number(b.dataset.tab); renderJuego(); return; }
+  const c=cancha(juego.canchaId), par=c.pars[hoyosDe(juego.tramo)[juego.hoyoActual]]||4, d=actual();
+  if(b.dataset.salida){ d.salida=d.salida===b.dataset.salida?'':b.dataset.salida; renderJuego(); return; }
+  if(b.dataset.a){
+    const campo=b.dataset.a.slice(0,-1), sig=b.dataset.a.slice(-1);
+    if(campo==='g') d.g=Math.max(1,(d.g||par)+(sig==='+'?1:-1));
+    else d[campo]=Math.max(0,(d[campo]||0)+(sig==='+'?1:-1));
+    renderJuego();
+  }
+});
+document.getElementById('jAnt').onclick=()=>{ if(juego.hoyoActual>0){juego.hoyoActual--; renderJuego();} };
+document.getElementById('jSig').onclick=()=>{ if(juego.hoyoActual<hoyosDe(juego.tramo).length-1){juego.hoyoActual++; renderJuego();} };
+document.getElementById('btnParcial').onclick=()=>{
+  const c=cancha(juego.canchaId), idx=hoyosDe(juego.tramo);
+  alert('Parcial\n\n'+juego.scores.map(s=>{
+    const t=s.hoyos.reduce((a,h)=>a+(h.g||0),0), n=s.hoyos.filter(h=>h.g).length;
+    const p=s.hoyos.reduce((a,h,m)=>a+(h.g?h.g-(c.pars[idx[m]]||4):0),0);
+    return `${jugador(s.jugadorId).nombre}: ${t} en ${n} hoyos (${fmtPar(p)})`;
+  }).join('\n'));
+};
+function cerrarRonda(guardarla){
+  if(guardarla){
+    if(!juego.scores.some(s=>s.hoyos.some(h=>h.g))){ toast('No hay ningún golpe cargado'); return; }
+    const c=cancha(juego.canchaId), idx=hoyosDe(juego.tramo);
+    // Rellena con el par solo los huecos ENTRE el primer y el último hoyo que jugó
+    // cada uno. Al que entró tarde o se fue antes no se le inventan hoyos.
+    juego.scores.forEach(s=>{
+      const j=s.hoyos.map(h=>!!h.g);
+      const ini=j.indexOf(true), fin=j.lastIndexOf(true);
+      if(ini<0) return;
+      for(let i=ini;i<=fin;i++) if(!s.hoyos[i].g) s.hoyos[i].g=c.pars[idx[i]]||4;
+    });
+    juego.scores=juego.scores.filter(s=>s.hoyos.some(h=>h.g));
+    juego.nota=prompt('Frase del día (opcional)', juego.nota||'')||'';
+    const {hoyoActual,...ronda}=juego;
+    if(editandoId){ const i=estado.rondas.findIndex(r=>r.id===editandoId); if(i>=0) estado.rondas[i]=ronda; toast('Ronda actualizada'); }
+    else { estado.rondas.push(ronda); toast('Ronda guardada'); }
+    temporadaSel=ronda.fecha.slice(0,4);
+    guardarRonda(ronda);
+  }
+  juego=null; editandoId=null; document.getElementById('dlgJuego').close(); render();
+}
+document.getElementById('btnTerminar').onclick=()=>cerrarRonda(true);
+document.getElementById('btnSalirJuego').onclick=()=>cerrarRonda(confirm('¿Guardar la ronda como está? Cancelar la descarta.'));
+
+let rTramo=18, rEditId=null;
+function abrirRapida(r){
+  rEditId=r?r.id:null;
+  document.getElementById('rTitulo').textContent=r?'Editar ronda':'Carga rápida';
+  document.getElementById('rFecha').value=r?r.fecha:hoy();
+  document.getElementById('rCancha').innerHTML=estado.canchas.map(c=>`<option value="${c.id}"${r&&r.canchaId===c.id?' selected':''}>${esc(c.nombre)}</option>`).join('');
+  document.getElementById('rScores').innerHTML=estado.jugadores.map(j=>{
+    const s=r?r.scores.find(x=>x.jugadorId===j.id):null;
+    return `<tr data-j="${j.id}"><td><input type="checkbox"${!r||s?' checked':''}></td><td><b>${esc(j.nombre)}</b></td>
+      <td><input type="number" class="golpes" inputmode="numeric" value="${s?totalGolpes(s):''}" placeholder="—"></td>
+      <td><input type="number" class="hcp" value="${s?s.hcp:j.hcp}" inputmode="numeric"></td><td class="neto">—</td></tr>`;
+  }).join('');
+  setRTramo(r?nHoyos(r):18);
+  document.getElementById('rNota').value=r?(r.nota||''):'';
+  document.getElementById('dlgRapida').showModal();
+}
+function setRTramo(v){ rTramo=v; document.querySelectorAll('#rHoyos button').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.v)===v))); netosRapida(); }
+function netosRapida(){
+  const c=cancha(document.getElementById('rCancha').value);
+  const par=hoyosDe(rTramo===9?'9':'18').reduce((s,i)=>s+(c.pars[i]||4),0);
+  document.querySelectorAll('#rScores tr').forEach(tr=>{
+    const g=Number(tr.querySelector('.golpes').value), h=Number(tr.querySelector('.hcp').value)||0, td=tr.querySelector('.neto');
+    if(!g){ td.textContent='—'; return; }
+    const n=neto(g,h,rTramo); td.textContent=`${n} (${fmtPar(n-par)})`;
+  });
+}
+function guardarRapida(){
+  const sc=[];
+  for(const tr of document.querySelectorAll('#rScores tr')){
+    if(!tr.querySelector('input[type=checkbox]').checked) continue;
+    const g=Number(tr.querySelector('.golpes').value);
+    if(!g){ toast('Falta el score de '+jugador(tr.dataset.j).nombre); return; }
+    sc.push({jugadorId:tr.dataset.j, golpes:g, hcp:Number(tr.querySelector('.hcp').value)||0});
+  }
+  if(!sc.length){ toast('Marcá al menos un jugador'); return; }
+  const f=document.getElementById('rFecha').value||hoy();
+  const r={id:rEditId||uid(), fecha:f, canchaId:document.getElementById('rCancha').value, tramo:rTramo===9?'9':'18',
+    viento:'', nota:document.getElementById('rNota').value.trim(), scores:sc};
+  if(rEditId){ const i=estado.rondas.findIndex(x=>x.id===rEditId); if(i>=0) estado.rondas[i]=r; toast('Ronda actualizada'); }
+  else { estado.rondas.push(r); toast('Ronda guardada'); }
+  temporadaSel=f.slice(0,4); rEditId=null;
+  document.getElementById('dlgRapida').close(); guardarRonda(r); render();
+}
+
+function abrirJugadores(){ renderJugadores(); document.getElementById('dlgJugadores').showModal(); }
+function renderJugadores(){
+  document.getElementById('listaJugadores').innerHTML=estado.jugadores.map(j=>`<li>
+    <input class="nombre" value="${esc(j.nombre)}" data-nom="${j.id}" aria-label="Nombre">
+    <select data-tee="${j.id}" style="width:auto">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
+    <input class="hcp" type="number" inputmode="numeric" value="${j.hcp}" data-hcp="${j.id}" aria-label="Handicap">
+    <button class="btn-x" data-quitar-j="${j.id}">Quitar</button></li>`).join('')||'<li class="hint">Sin jugadores.</li>';
+}
+function agregarJugador(){
+  const n=document.getElementById('jNombre').value.trim(); if(!n) return;
+  estado.jugadores.push({id:uid(),nombre:n,hcp:Number(document.getElementById('jHcp').value)||0,tee:document.getElementById('jTee').value});
+  document.getElementById('jNombre').value=''; document.getElementById('jHcp').value='';
+  guardar(); renderJugadores(); render(); document.getElementById('jNombre').focus();
+}
+
+function abrirCanchas(){
+  document.getElementById('cSel').innerHTML=estado.canchas.map(c=>`<option value="${c.id}">${esc(c.nombre)}</option>`).join('');
+  renderCancha(); document.getElementById('dlgCanchas').showModal();
+}
+function renderCancha(){
+  const c=cancha(document.getElementById('cSel').value);
+  const tot=t=>(c.tees[t]||[]).reduce((a,b)=>a+(b||0),0);
+  document.getElementById('cDetalle').innerHTML=`
+    <p class="hint" style="margin-bottom:8px">${esc(c.ciudad)} · par ${c.pars.reduce((a,b)=>a+b,0)} · azul ${tot('azul')||'—'} · blanco ${tot('blanco')||'—'} · rojo ${tot('rojo')||'—'} yds</p>
+    <div class="tarjeta"><table class="tj"><thead><tr><th class="j">Hoyo</th>${c.pars.map((_,i)=>`<th>${i+1}</th>`).join('')}</tr></thead><tbody>
+      <tr><td class="j">Par</td>${c.pars.map((p,i)=>`<td><input type="number" value="${p}" data-c="pars" data-i="${i}" style="width:42px;padding:3px;text-align:center"></td>`).join('')}</tr>
+      <tr><td class="j">Hcp</td>${c.pars.map((_,i)=>`<td><input type="number" value="${c.si[i]??''}" data-c="si" data-i="${i}" style="width:42px;padding:3px;text-align:center"></td>`).join('')}</tr>
+      ${['azul','blanco','rojo'].map(t=>`<tr><td class="j">${t[0].toUpperCase()+t.slice(1)}</td>${c.pars.map((_,i)=>`<td><input type="number" value="${(c.tees[t]||[])[i]??''}" data-c="tee" data-t="${t}" data-i="${i}" style="width:46px;padding:3px;text-align:center" placeholder="—"></td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+}
+document.getElementById('cDetalle').addEventListener('change',e=>{
+  const el=e.target; if(!el.dataset.c) return;
+  const c=cancha(document.getElementById('cSel').value), i=Number(el.dataset.i), v=Number(el.value)||null;
+  if(el.dataset.c==='pars') c.pars[i]=v||4;
+  else if(el.dataset.c==='si') c.si[i]=v;
+  else { c.tees[el.dataset.t]=c.tees[el.dataset.t]||[]; c.tees[el.dataset.t][i]=v; }
+  guardar(); render();
+});
+
+function exportar(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(estado,null,2)],{type:'application/json'}));
+  a.download=`golf-nqn-${hoy()}.json`; a.click(); URL.revokeObjectURL(a.href);
+}
+function importar(f){
+  const r=new FileReader();
+  r.onload=async()=>{ try{
+    const d=JSON.parse(r.result); if(!d.rondas||!d.jugadores) throw 0;
+    migrar(d);
+    await guardarConfig();
+    for(const x of estado.rondas) await guardarRonda(x);
+    render(); toast('Respaldo importado');
+  }catch{ toast('Archivo inválido'); } };
+  r.readAsText(f);
+}
+
+document.getElementById('btnJugar').onclick=abrirSetup;
+document.getElementById('btnRapida').onclick=()=>abrirRapida(null);
+document.getElementById('btnEmpezar').onclick=empezar;
+document.getElementById('btnGuardarRapida').onclick=guardarRapida;
+document.getElementById('btnJugadores').onclick=abrirJugadores;
+document.getElementById('btnCanchas').onclick=abrirCanchas;
+document.getElementById('btnAgregarJugador').onclick=agregarJugador;
+document.getElementById('btnExportar').onclick=exportar;
+document.getElementById('btnImportar').onclick=()=>document.getElementById('archivoImportar').click();
+document.getElementById('archivoImportar').onchange=e=>{ if(e.target.files[0]) importar(e.target.files[0]); e.target.value=''; };
+document.getElementById('temporada').onchange=e=>{ temporadaSel=e.target.value; renderPosiciones(); };
+document.getElementById('cSel').onchange=renderCancha;
+document.getElementById('statJugador').onchange=renderStats;
+document.getElementById('statCancha').onchange=renderStats;
+document.getElementById('sHoyos').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setTramo(b.dataset.v);});
+document.getElementById('rHoyos').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setRTramo(Number(b.dataset.v));});
+document.getElementById('sViento').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return;
+  sViento=sViento===b.dataset.v?'':b.dataset.v;
+  document.querySelectorAll('#sViento button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===sViento)));});
+document.getElementById('rScores').addEventListener('input',netosRapida);
+document.getElementById('rCancha').addEventListener('change',netosRapida);
+document.querySelectorAll('[data-cerrar]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.cerrar).close());
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{
+  vista=b.dataset.vista;
+  document.querySelectorAll('nav.tabs button').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
+  render();
+});
+document.getElementById('jNombre').addEventListener('keydown',e=>{ if(e.key==='Enter') agregarJugador(); });
+document.getElementById('listaJugadores').addEventListener('change',e=>{
+  const el=e.target, id=el.dataset.nom||el.dataset.hcp||el.dataset.tee;
+  const j=estado.jugadores.find(x=>x.id===id); if(!j) return;
+  if(el.dataset.nom){ const v=el.value.trim(); if(!v){ el.value=j.nombre; return; } j.nombre=v; }
+  else if(el.dataset.hcp) j.hcp=Number(el.value)||0;
+  else j.tee=el.value;
+  guardar(); render();
+});
+document.getElementById('listaJugadores').addEventListener('click',e=>{
+  const b=e.target.closest('[data-quitar-j]'); if(!b) return;
+  if(estado.rondas.some(r=>r.scores.some(s=>s.jugadorId===b.dataset.quitarJ))){ toast('Tiene rondas cargadas; cambiale el nombre en vez de quitarlo'); return; }
+  estado.jugadores=estado.jugadores.filter(x=>x.id!==b.dataset.quitarJ); guardar(); renderJugadores(); render();
+});
+document.getElementById('rondas').addEventListener('click',e=>{
+  const ed=e.target.closest('[data-editar]'); if(ed){ e.preventDefault(); editarRonda(ed.dataset.editar); return; }
+  const b=e.target.closest('[data-borrar]'); if(!b) return;
+  e.preventDefault();
+  if(!confirm('¿Borrar esta ronda?')) return;
+  estado.rondas=estado.rondas.filter(r=>r.id!==b.dataset.borrar); eliminarRonda(b.dataset.borrar); render(); toast('Ronda borrada');
+});
+
+document.getElementById('btnRefrescar').onclick=async()=>{ await refrescar(); render(); toast('Actualizado'); };
+document.getElementById('btnConectar').onclick=()=>abrirConexion(false);
+document.getElementById('btnGuardarConexion').onclick=conectar;
+document.getElementById('btnLinkGrupo').onclick=copiarLinkGrupo;
+// Recarga sola al volver a la pestaña y cada 45 segundos, para que lo que
+// carga uno aparezca en el celular del otro sin tener que hacer nada.
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!juego) refrescar(); });
+setInterval(()=>{ if(!document.hidden&&!juego) refrescar(); },45000);
+
+cargar().then(render);
+</script>
+</body>
+</html>
