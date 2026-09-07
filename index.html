@@ -153,6 +153,7 @@
   .cont .row{display:flex; align-items:center; justify-content:center; gap:2px}
   .cont button{width:27px; height:27px; padding:0; font-size:16px; border-radius:50%; background:var(--arena); line-height:1}
   .cont .v{min-width:18px; font-weight:700; font-size:17px}
+  .cont .v.nulo{color:var(--tinta-2); font-weight:400}
   .j-pie{display:flex; gap:8px; margin-top:auto}
   .j-pie button{flex:1; padding:13px 8px; font-size:15px}
 
@@ -183,7 +184,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v5.2</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v6.1</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnJugadores">Jugadores</button>
@@ -212,6 +213,10 @@
     <div class="fila c2">
       <div><label for="statJugador">Jugador</label><select id="statJugador"></select></div>
       <div><label for="statCancha">Cancha</label><select id="statCancha"></select></div>
+    </div>
+    <div class="fila c2">
+      <div><label for="statDesde">Desde</label><input type="date" id="statDesde"></div>
+      <div><label for="statHasta">Hasta</label><input type="date" id="statHasta"></div>
     </div>
     <div id="statsCuerpo"></div>
   </div>
@@ -289,6 +294,25 @@
   </div>
 </dialog>
 
+<dialog id="dlgCondiciones">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Condiciones de la ronda</h2><button class="btn-x" data-cerrar="dlgCondiciones">Cerrar</button></div>
+    <div class="fila c2">
+      <div><label for="kFecha">Fecha</label><input type="date" id="kFecha"></div>
+      <div><label>Hoyos</label><div class="toggle" id="kHoyos">
+        <button type="button" data-v="9">1 a 9</button><button type="button" data-v="9b">10 a 18</button><button type="button" data-v="18">18</button>
+      </div></div>
+    </div>
+    <div class="fila"><div><label for="kCancha">Cancha</label><select id="kCancha"></select></div></div>
+    <div class="fila"><div><label>Viento</label><div class="chips" id="kViento">
+      <button type="button" data-v="Calmo">Calmo</button><button type="button" data-v="Ventoso">Ventoso</button><button type="button" data-v="Vendaval">Vendaval</button>
+    </div></div></div>
+    <div class="fila"><div><label for="kNota">Frase del día</label><textarea id="kNota" placeholder="Opcional"></textarea></div></div>
+    <p class="hint" id="kAviso" style="margin-bottom:12px"></p>
+    <div class="acciones"><button data-cerrar="dlgCondiciones">Cancelar</button><button class="btn-p" id="btnGuardarCondiciones">Guardar</button></div>
+  </div>
+</dialog>
+
 <dialog id="dlgConexion">
   <div class="dlg">
     <div class="dlg-cab"><h2>Conectar la planilla</h2><button class="btn-x" data-cerrar="dlgConexion">Cerrar</button></div>
@@ -357,6 +381,7 @@ const CANCHAS_BASE = [
     tees:{ azul:[396,487,168,327,174,422,424,128,347, 371,371,286,146,490,417,155,375,347], blanco:[], rojo:[] } },
 ];
 const SALIDAS=['Fairway','Larga','Corta','Derecha','Izquierda'];
+// Papa: golpe que sale mal y casi no avanza, el golpe regalado.
 const CAMPOS=[['putts','Putts'],['chip','Chips'],['sand','Sand'],['papa','Papas'],['pen','Penal.']];
 
 const KEY='golf-nqn:estado';        // formato viejo, solo para migrar
@@ -578,7 +603,7 @@ function renderRondas(){
         }).join('')}
         </tbody></table>${tj}
         <div class="pie"><span>${r.nota?'“'+esc(r.nota)+'”':''}</span>
-        <span><button class="btn-q" data-editar="${r.id}">Editar</button><button class="btn-x" data-borrar="${r.id}">Borrar</button></span></div>
+        <span><button class="btn-q" data-cond="${r.id}">Condiciones</button><button class="btn-q" data-editar="${r.id}">Editar</button><button class="btn-x" data-borrar="${r.id}">Borrar</button></span></div>
       </div></details>`;
   }).join('');
 }
@@ -588,54 +613,78 @@ function renderStats(){
   const jSel=sj.value, cSel=sc.value;
   sj.innerHTML=estado.jugadores.map(j=>`<option value="${j.id}"${j.id===jSel?' selected':''}>${esc(j.nombre)}</option>`).join('');
   sc.innerHTML=`<option value="">Todas las canchas</option>`+estado.canchas.map(c=>`<option value="${c.id}"${c.id===cSel?' selected':''}>${esc(c.nombre)}</option>`).join('');
+
+  // Por defecto, el último año.
+  const iDesde=document.getElementById('statDesde'), iHasta=document.getElementById('statHasta');
+  if(!iDesde.value){ const d=new Date(); d.setFullYear(d.getFullYear()-1); iDesde.value=d.toISOString().slice(0,10); }
+  if(!iHasta.value) iHasta.value=hoy();
+  const desde=iDesde.value, hasta=iHasta.value;
+
   const jid=sj.value||(estado.jugadores[0]||{}).id, cid=sc.value;
   const el=document.getElementById('statsCuerpo');
-  const rs=estado.rondas.filter(r=>(!cid||r.canchaId===cid)&&r.scores.some(s=>s.jugadorId===jid&&s.hoyos));
-  if(!rs.length){ el.innerHTML=`<div class="vacio-s">Sin rondas cargadas hoyo por hoyo${cid?' en esta cancha':''} para este jugador.</div>`; return; }
-  let hoyos=0,golpes=0,putts=0,chips=0,sand=0,papas=0,pen=0,gir=0,fw=0,fwOp=0;
+  const rs=estado.rondas.filter(r=>(!cid||r.canchaId===cid)
+    && (!desde||r.fecha>=desde) && (!hasta||r.fecha<=hasta)
+    && r.scores.some(s=>s.jugadorId===jid&&s.hoyos));
+  if(!rs.length){ el.innerHTML=`<div class="vacio-s">Sin rondas cargadas hoyo por hoyo en ese período${cid?' y en esa cancha':''}.</div>`; return; }
+
+  // Cada dato lleva su propio contador: lo que quedó en "—" no entra en el promedio.
+  let hoyos=0,golpes=0,fw=0,fwOp=0;
+  const ac={putts:0,chip:0,sand:0,papa:0,pen:0};
+  const nn={putts:0,chip:0,sand:0,papa:0,pen:0};
+  let gir=0, girOp=0, rondasConPen=0;
   const sal={}; SALIDAS.forEach(s=>sal[s]=0);
-  const dist={eagle:0,birdie:0,par:0,bogey:0,doble:0};
+  const dist={eagle:0,birdie:0,par:0,bogey:0,doble:0,triple:0,peor:0};
   const porHoyo={};
   rs.forEach(r=>{
     const c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
     const s=r.scores.find(x=>x.jugadorId===jid);
+    let penEnRonda=false;
     s.hoyos.forEach((h,k)=>{
       if(!h.g) return;
       const par=c.pars[idx[k]]||4, d=h.g-par;
-      hoyos++; golpes+=h.g; putts+=h.putts||0; chips+=h.chip||0; sand+=h.sand||0; papas+=h.papa||0; pen+=h.pen||0;
-      if((h.g-(h.putts||0))<=par-2) gir++;
-      if(par>3){ fwOp++; if(h.salida==='Fairway') fw++; }
+      hoyos++; golpes+=h.g;
+      ['putts','chip','sand','papa','pen'].forEach(f=>{ if(h[f]!=null){ ac[f]+=h[f]; nn[f]++; if(f==='pen') penEnRonda=true; } });
+      if(h.putts!=null){ girOp++; if((h.g-h.putts)<=par-2) gir++; }
+      if(par>3&&h.salida){ fwOp++; if(h.salida==='Fairway') fw++; }
       if(h.salida) sal[h.salida]=(sal[h.salida]||0)+1;
-      if(d<=-2) dist.eagle++; else if(d===-1) dist.birdie++; else if(d===0) dist.par++; else if(d===1) dist.bogey++; else dist.doble++;
+      if(d<=-2) dist.eagle++; else if(d===-1) dist.birdie++; else if(d===0) dist.par++;
+      else if(d===1) dist.bogey++; else if(d===2) dist.doble++; else if(d===3) dist.triple++; else dist.peor++;
       const hn=idx[k]+1; porHoyo[hn]=porHoyo[hn]||{s:0,n:0,par}; porHoyo[hn].s+=d; porHoyo[hn].n++;
     });
+    if(penEnRonda) rondasConPen++;
   });
   const pct=(a,b)=>b?Math.round(a*100/b)+'%':'—';
   const p1=(a,b)=>b?(a/b).toFixed(1):'—';
-  const totSal=Object.values(sal).reduce((a,b)=>a+b,0)||1;
+  const p2=(a,b)=>b?(a/b).toFixed(2):'—';
+  const totSal=Object.values(sal).reduce((a,b)=>a+b,0);
   let peor='';
   if(cid){
     const o=Object.entries(porHoyo).map(([h,v])=>({h,prom:v.s/v.n,par:v.par})).sort((a,b)=>b.prom-a.prom);
     if(o.length>1) peor=`<p class="hint" style="margin-bottom:18px">Acá el hoyo que más te cuesta es el <b>${o[0].h}</b> (par ${o[0].par}), ${fmtPar(Math.round(o[0].prom*10)/10)} de promedio. El más amable, el <b>${o[o.length-1].h}</b>.</p>`;
   }
+  const sinDato=Object.entries(nn).filter(([f,n])=>n===0).length;
   el.innerHTML=`
     <div class="stat-grid">
-      <div class="stat"><div class="v">${rs.length}</div><div class="l">rondas con detalle</div></div>
+      <div class="stat"><div class="v">${rs.length}</div><div class="l">rondas en el período</div></div>
       <div class="stat"><div class="v">${p1(golpes,hoyos)}</div><div class="l">golpes por hoyo</div></div>
-      <div class="stat"><div class="v">${p1(putts,hoyos)}</div><div class="l">putts por hoyo</div></div>
+      <div class="stat"><div class="v">${p1(ac.putts,nn.putts)}</div><div class="l">putts por hoyo</div></div>
       <div class="stat"><div class="v">${pct(fw,fwOp)}</div><div class="l">fairways (par 4 y 5)</div></div>
-      <div class="stat"><div class="v">${pct(gir,hoyos)}</div><div class="l">greens en regulación</div></div>
-      <div class="stat"><div class="v">${p1(chips+sand,hoyos)}</div><div class="l">chips + sand por hoyo</div></div>
-      <div class="stat"><div class="v">${papas}</div><div class="l">papas</div></div>
-      <div class="stat"><div class="v">${pen}</div><div class="l">penalidades</div></div>
+      <div class="stat"><div class="v">${pct(gir,girOp)}</div><div class="l">greens en regulación</div></div>
+      <div class="stat"><div class="v">${p2(ac.papa,nn.papa)}</div><div class="l">papas por hoyo</div></div>
+      <div class="stat"><div class="v">${p1(ac.pen,rs.length)}</div><div class="l">penalidades por ronda</div></div>
+      <div class="stat"><div class="v">${p2(ac.chip+ac.sand,Math.max(nn.chip,nn.sand))}</div><div class="l">chips + sand por hoyo</div></div>
     </div>
     ${peor}
     <h3 style="font-size:16px; margin-bottom:8px">Dónde termina la salida</h3>
-    <div class="barras">${SALIDAS.map(s=>`<div class="barra-fila"><span class="et">${s}</span><span class="tr"><i style="width:${sal[s]*100/totSal}%"></i></span><span class="n">${pct(sal[s],totSal)}</span></div>`).join('')}</div>
+    ${totSal?`<div class="barras">${SALIDAS.map(s=>`<div class="barra-fila"><span class="et">${s}</span><span class="tr"><i style="width:${sal[s]*100/totSal}%"></i></span><span class="n">${pct(sal[s],totSal)}</span></div>`).join('')}</div>`
+      :'<p class="hint" style="margin-bottom:18px">Sin salidas anotadas en el período.</p>'}
     <h3 style="font-size:16px; margin-bottom:8px">Resultado por hoyo</h3>
-    <div class="barras">${[['Eagle o mejor','eagle'],['Birdie','birdie'],['Par','par'],['Bogey','bogey'],['Doble o más','doble']].map(([et,k])=>
+    <div class="barras">${[['Eagle o mejor','eagle'],['Birdie','birdie'],['Par','par'],['Bogey','bogey'],['Doble bogey','doble'],['Triple bogey','triple'],['Más de triple','peor']].map(([et,k])=>
       `<div class="barra-fila"><span class="et">${et}</span><span class="tr"><i style="width:${dist[k]*100/(hoyos||1)}%"></i></span><span class="n">${dist[k]}</span></div>`).join('')}</div>
-    <p class="hint">Green en regulación: llegaste al green en par−2 golpes o menos, sin contar putts.</p>`;
+    <p class="hint">Papa: golpe que sale mal y casi no avanza. Es el golpe regalado, el que no te acerca al hoyo.</p>
+    <p class="hint">Green en regulación: llegaste al green en par−2 golpes o menos (2 en un par 4), descontando los putts. Solo se cuentan los hoyos donde anotaste putts.</p>
+    ${sinDato?'<p class="hint">Los datos que dejaste en “—” no se promedian, así no te ensucian la estadística.</p>':''}
+    <p class="hint">Penalidades: ${ac.pen} en total, en ${rondasConPen} de ${rs.length} rondas.</p>`;
 }
 
 let sTramo='18', sViento='';
@@ -659,7 +708,7 @@ function empezar(){
   document.querySelectorAll('#sJugadores tr').forEach(tr=>{
     if(!tr.querySelector('input[type=checkbox]').checked) return;
     sc.push({jugadorId:tr.dataset.j, tee:tr.querySelector('.tee').value, hcp:Number(tr.querySelector('.hcp').value)||0,
-      hoyos:hoyosDe(sTramo).map(()=>({g:0,putts:0,salida:'',chip:0,sand:0,papa:0,pen:0}))});
+      hoyos:hoyosDe(sTramo).map(()=>({g:0,putts:null,salida:'',chip:null,sand:null,papa:null,pen:null}))});
   });
   if(!sc.length){ toast('Marcá al menos un jugador'); return; }
   juego={id:uid(), fecha:document.getElementById('sFecha').value||hoy(), canchaId:document.getElementById('sCancha').value,
@@ -698,7 +747,7 @@ function renderJuego(){
   document.getElementById('jvsPar').textContent=d.g?fmtPar(d.g-par):'sin cargar';
   document.getElementById('jSalida').innerHTML=SALIDAS.map(x=>`<button data-salida="${x}" aria-pressed="${d.salida===x}">${x}</button>`).join('');
   document.getElementById('jCont').innerHTML=CAMPOS.map(([k2,et])=>`<div class="cont">
-    <div class="et">${et}</div><div class="row"><button data-a="${k2}-" aria-label="menos ${et}">−</button><span class="v">${d[k2]||0}</span><button data-a="${k2}+" aria-label="más ${et}">+</button></div></div>`).join('');
+    <div class="et">${et}</div><div class="row"><button data-a="${k2}-" aria-label="menos ${et}">−</button><span class="v${d[k2]==null?' nulo':''}">${d[k2]==null?'—':d[k2]}</span><button data-a="${k2}+" aria-label="más ${et}">+</button></div></div>`).join('');
 }
 function abrirSumar(){
   const dentro=juego.scores.map(s=>s.jugadorId);
@@ -727,7 +776,7 @@ document.getElementById('sumarCuerpo').addEventListener('click',e=>{
     const id=add.dataset.sumar;
     const tee=document.querySelector(`[data-tee-nuevo="${id}"]`).value;
     const hcp=Number(document.querySelector(`[data-hcp-nuevo="${id}"]`).value)||0;
-    juego.scores.push({jugadorId:id, tee, hcp, hoyos:hoyosDe(juego.tramo).map(()=>({g:0,putts:0,salida:'',chip:0,sand:0,papa:0,pen:0}))});
+    juego.scores.push({jugadorId:id, tee, hcp, hoyos:hoyosDe(juego.tramo).map(()=>({g:0,putts:null,salida:'',chip:null,sand:null,papa:null,pen:null}))});
     jugTab=juego.scores.length-1;
     document.getElementById('dlgSumar').close(); renderJuego(); toast(jugador(id).nombre+' sumado');
     return;
@@ -750,7 +799,9 @@ document.getElementById('dlgJuego').addEventListener('click',e=>{
   if(b.dataset.a){
     const campo=b.dataset.a.slice(0,-1), sig=b.dataset.a.slice(-1);
     if(campo==='g') d.g=Math.max(1,(d.g||par)+(sig==='+'?1:-1));
-    else d[campo]=Math.max(0,(d[campo]||0)+(sig==='+'?1:-1));
+    else if(sig==='+') d[campo] = d[campo]==null ? 1 : d[campo]+1;
+    // Bajando: 1 → 0 → "—". El cero cuenta como dato; el guion queda afuera del promedio.
+    else d[campo] = d[campo]==null ? null : (d[campo]===0 ? null : d[campo]-1);
     renderJuego();
   }
 });
@@ -902,6 +953,8 @@ document.getElementById('temporada').onchange=e=>{ temporadaSel=e.target.value; 
 document.getElementById('cSel').onchange=renderCancha;
 document.getElementById('statJugador').onchange=renderStats;
 document.getElementById('statCancha').onchange=renderStats;
+document.getElementById('statDesde').onchange=renderStats;
+document.getElementById('statHasta').onchange=renderStats;
 document.getElementById('sHoyos').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setTramo(b.dataset.v);});
 document.getElementById('rHoyos').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setRTramo(Number(b.dataset.v));});
 document.getElementById('sViento').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return;
@@ -929,7 +982,54 @@ document.getElementById('listaJugadores').addEventListener('click',e=>{
   if(estado.rondas.some(r=>r.scores.some(s=>s.jugadorId===b.dataset.quitarJ))){ toast('Tiene rondas cargadas; cambiale el nombre en vez de quitarlo'); return; }
   estado.jugadores=estado.jugadores.filter(x=>x.id!==b.dataset.quitarJ); guardar(); renderJugadores(); render();
 });
+/* ===== Condiciones de una ronda ya guardada ===== */
+let condId=null, kTramo='18', kViento='';
+function abrirCondiciones(id){
+  const r=estado.rondas.find(x=>x.id===id); if(!r) return;
+  condId=id;
+  document.getElementById('kFecha').value=r.fecha;
+  document.getElementById('kCancha').innerHTML=estado.canchas.map(c=>`<option value="${c.id}"${c.id===r.canchaId?' selected':''}>${esc(c.nombre)} — ${esc(c.ciudad)}</option>`).join('');
+  kTramo=String(r.tramo||'18');
+  document.querySelectorAll('#kHoyos button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===kTramo)));
+  kViento=r.viento||'';
+  document.querySelectorAll('#kViento button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===kViento)));
+  document.getElementById('kNota').value=r.nota||'';
+  const det=r.scores.some(s=>s.hoyos);
+  document.getElementById('kAviso').textContent = det
+    ? 'Cambiar la cancha o el tramo recalcula el par de cada hoyo contra la tarjeta nueva. Los golpes anotados no se tocan.'
+    : '';
+  document.getElementById('dlgCondiciones').showModal();
+}
+function guardarCondiciones(){
+  const r=estado.rondas.find(x=>x.id===condId); if(!r) return;
+  const nuevoTramo=kTramo, viejosHoyos=hoyosDe(r.tramo||'18').length, nuevosHoyos=hoyosDe(nuevoTramo).length;
+  if(r.scores.some(s=>s.hoyos) && viejosHoyos!==nuevosHoyos){
+    if(!confirm(`La ronda tiene ${viejosHoyos} hoyos anotados y estás pasando a ${nuevosHoyos}. ¿Seguir?`)) return;
+    r.scores.forEach(s=>{
+      if(!s.hoyos) return;
+      const n=[...s.hoyos].slice(0,nuevosHoyos);
+      while(n.length<nuevosHoyos) n.push({g:0,putts:null,salida:'',chip:null,sand:null,papa:null,pen:null});
+      s.hoyos=n;
+    });
+  }
+  r.fecha=document.getElementById('kFecha').value||r.fecha;
+  r.canchaId=document.getElementById('kCancha').value;
+  r.tramo=nuevoTramo;
+  r.viento=kViento;
+  r.nota=document.getElementById('kNota').value.trim();
+  temporadaSel=r.fecha.slice(0,4);
+  document.getElementById('dlgCondiciones').close();
+  guardarRonda(r); render(); toast('Condiciones actualizadas');
+}
+document.getElementById('kHoyos').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return;
+  kTramo=b.dataset.v; document.querySelectorAll('#kHoyos button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===kTramo)));});
+document.getElementById('kViento').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return;
+  kViento=kViento===b.dataset.v?'':b.dataset.v;
+  document.querySelectorAll('#kViento button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===kViento)));});
+document.getElementById('btnGuardarCondiciones').onclick=guardarCondiciones;
+
 document.getElementById('rondas').addEventListener('click',e=>{
+  const co=e.target.closest('[data-cond]'); if(co){ e.preventDefault(); abrirCondiciones(co.dataset.cond); return; }
   const ed=e.target.closest('[data-editar]'); if(ed){ e.preventDefault(); editarRonda(ed.dataset.editar); return; }
   const b=e.target.closest('[data-borrar]'); if(!b) return;
   e.preventDefault();
