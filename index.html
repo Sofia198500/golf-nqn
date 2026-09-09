@@ -188,8 +188,8 @@
   table.hoyos th:first-child{text-align:left; padding-left:10px}
   table.hoyos td{padding:7px 4px; text-align:right; border-top:1px solid var(--linea)}
   table.hoyos td:first-child{text-align:left; padding-left:10px; font-weight:700}
-  table.hoyos tr.fila{cursor:pointer}
-  table.hoyos tr.fila.sel{background:var(--arena)}
+  table.hoyos tr.hfila{cursor:pointer}
+  table.hoyos tr.hfila.sel{background:var(--arena)}
   table.hoyos .bar{display:inline-block; height:9px; border-radius:2px; background:var(--fairway); vertical-align:middle}
   table.hoyos .marca{font-size:10.5px; color:var(--tinta-2); font-weight:400; margin-left:5px}
   .detalle-hoyo{background:var(--blanco); border:1px solid var(--linea); border-top:0;
@@ -239,7 +239,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v10</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v10.1</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnJugadores">Jugadores</button>
@@ -1012,7 +1012,7 @@ function renderHoyos(){
     <div class="graf-cab"><b>Hoyo por hoyo</b><span>tocá uno para ver el detalle</span></div>
     <table class="hoyos"><thead><tr>
       <th>Hoyo</th><th>Par</th><th>Jug.</th><th>vs par</th><th>Putts</th><th>Pen.</th></tr></thead><tbody>
-      ${filas.map(f=>`<tr class="fila${hoyoSel===f.nh?' sel':''}" data-hoyo="${f.nh}">
+      ${filas.map(f=>`<tr class="hfila${hoyoSel===f.nh?' sel':''}" data-hoyo="${f.nh}">
         <td>${f.nh}${f.si?`<span class="marca">hcp ${f.si}</span>`:''}</td>
         <td>${f.par}</td><td>${f.n}</td>
         <td><span class="bar" style="width:${Math.max(2,Math.abs(f.prom)*30/maxProm)}px; opacity:${f.prom>0?.9:.35}"></span> ${fmtPar(Math.round(f.prom*10)/10)}</td>
