@@ -239,7 +239,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v12</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v12.3</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnTorneos">Torneos</button>
@@ -449,7 +449,7 @@
 
 <dialog id="dlgImpRondas">
   <div class="dlg">
-    <div class="dlg-cab"><h2>Importar rondas</h2><button class="btn-x" data-cerrar="dlgImpRondas">Cerrar</button></div>
+    <div class="dlg-cab"><h2>Importar rondas</h2><button class="btn-x" id="btnCerrarImport">Cerrar</button></div>
     <div id="impResumen"></div>
     <div class="fila"><div><label for="impJugador">Estas rondas son de</label><select id="impJugador"></select></div></div>
     <p class="hint" style="margin-bottom:12px">Si ya existe una ronda en la misma fecha y cancha, el jugador se agrega a esa ronda en vez de crear una nueva. Las que ya tengan a ese jugador se saltean.</p>
@@ -580,7 +580,7 @@ function jsonp(params, timeoutMs){
 // Manda una orden partida en pedazos, porque una URL no puede ser muy larga.
 async function api(cuerpo){
   const txt=JSON.stringify(cuerpo);
-  const TAM=1200;
+  const TAM=4000;   // una URL de Apps Script aguanta bastante más que esto
   const lote=Math.random().toString(36).slice(2);
   const total=Math.ceil(txt.length/TAM)||1;
   let r;
@@ -1753,14 +1753,23 @@ function planImport(){
   const jid=document.getElementById('impJugador').value;
   const cid=impDatos.canchaId;
   const nuevas=[], sumadas=[], repetidas=[];
+  // Una misma fecha puede tener más de una vuelta (dos veces la ida, por
+  // ejemplo). Por eso cada ronda existente se puede usar una sola vez en
+  // este import: si no, la segunda del día se perdería.
+  const tomadas=new Set();
   (impDatos.rondas||[]).forEach(x=>{
-    const ex=estado.rondas.find(r=>r.fecha===x.fecha && r.canchaId===cid);
-    if(!ex) nuevas.push(x);
-    else if(ex.scores.some(s=>s.jugadorId===jid)) repetidas.push(x);
-    else sumadas.push({x,ex});
+    const mismas=estado.rondas.filter(r=>r.fecha===x.fecha && r.canchaId===cid);
+    const yaTiene=mismas.find(r=>r.scores.some(s=>s.jugadorId===jid)
+      && !tomadas.has('rep:'+r.id) && mismoTramo(r,x));
+    if(yaTiene){ tomadas.add('rep:'+yaTiene.id); repetidas.push(x); return; }
+    const libre=mismas.find(r=>!r.scores.some(s=>s.jugadorId===jid) && !tomadas.has(r.id));
+    if(libre){ tomadas.add(libre.id); sumadas.push({x, ex:libre}); return; }
+    nuevas.push(x);
   });
   return {jid,cid,nuevas,sumadas,repetidas};
 }
+function mismoTramo(r,x){ return String(r.tramo||'18')===String(x.tramo||'18'); }
+
 function previsualizar(){
   const p=planImport();
   document.getElementById('impDetalle').innerHTML=`
@@ -1774,19 +1783,48 @@ function previsualizar(){
 async function hacerImport(){
   const p=planImport();
   const j=jugador(p.jid);
-  let n=0;
-  for(const x of p.nuevas){
-    const r={id:uid(), fecha:x.fecha, canchaId:p.cid, tramo:x.tramo||'18', viento:'', nota:'',
-      torneoId:'', scores:[{jugadorId:p.jid, tee:x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:x.hoyos}]};
-    estado.rondas.push(r); await guardarRonda(r); n++;
+  const total=p.nuevas.length+p.sumadas.length;
+  if(!total){ toast('No hay nada para importar'); return; }
+  const btn=document.getElementById('btnHacerImport');
+  const det=document.getElementById('impDetalle');
+  btn.disabled=true; document.querySelectorAll('#dlgImpRondas [data-cerrar]').forEach(b=>b.disabled=true);
+  const avance=(i,extra)=>{ det.innerHTML=
+    `<div class="diag" style="margin-bottom:10px"><h3>Guardando ${i} de ${total}</h3>
+      <div class="sub">Cada ronda se guarda en la planilla. Con muchas rondas esto tarda un rato: no cierres la página.</div>
+      <div class="lin"><span class="tr"><i style="width:${Math.round(i*100/total)}%"></i></span>
+        <span class="n">${Math.round(i*100/total)}%</span></div>
+      ${extra||''}</div>`; };
+  avance(0);
+  let n=0, fallo=null;
+  try{
+    for(const x of p.nuevas){
+      const r={id:uid(), fecha:x.fecha, canchaId:p.cid, tramo:x.tramo||'18', viento:'', nota:'',
+        torneoId:'', scores:[{jugadorId:p.jid, tee:x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:x.hoyos}]};
+      await api({accion:'guardarRonda', ronda:r});
+      estado.rondas.push(r); n++; avance(n);
+    }
+    for(const o of p.sumadas){
+      o.ex.scores.push({jugadorId:p.jid, tee:o.x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:o.x.hoyos});
+      await api({accion:'guardarRonda', ronda:o.ex});
+      n++; avance(n);
+    }
+  }catch(e){ fallo=e.message; }
+  // Pase lo que pase, los botones vuelven a funcionar: el cartel nunca
+  // tiene que quedar sin forma de cerrarse.
+  btn.disabled=false; document.querySelectorAll('#dlgImpRondas [data-cerrar]').forEach(b=>b.disabled=false);
+  try{ render(); }catch(e){ console.error('error al redibujar',e); }
+  if(fallo){
+    // Se corta en la que falló: las anteriores ya quedaron guardadas y el
+    // importador las va a saltear si volvés a intentarlo.
+    avance(n, `<div class="foco" style="color:var(--bandera)">Se cortó en la ronda ${n+1}: ${esc(fallo)}.
+      Las ${n} anteriores quedaron guardadas. Tocá Importar de nuevo para seguir desde ahí.</div>`);
+    return;
   }
-  for(const o of p.sumadas){
-    o.ex.scores.push({jugadorId:p.jid, tee:o.x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:o.x.hoyos});
-    await guardarRonda(o.ex); n++;
-  }
-  document.getElementById('dlgImpRondas').close();
-  render(); toast(`${n} ronda${n===1?'':'s'} importada${n===1?'':'s'}`);
+  try{ document.getElementById('dlgImpRondas').close(); }catch(e){}
+  impDatos=null;
+  toast(`${n} ronda${n===1?'':'s'} importada${n===1?'':'s'}`);
 }
+
 function leerArchivoRondas(f){
   const rd=new FileReader();
   rd.onload=()=>{ try{
@@ -1828,6 +1866,9 @@ document.getElementById('btnImportarRondas').onclick=()=>document.getElementById
 document.getElementById('archivoRondas').onchange=e=>{ if(e.target.files[0]) leerArchivoRondas(e.target.files[0]); e.target.value=''; };
 document.getElementById('impJugador').onchange=previsualizar;
 document.getElementById('btnHacerImport').onclick=hacerImport;
+document.getElementById('btnCerrarImport').onclick=()=>{
+  document.getElementById('dlgImpRondas').close(); impDatos=null; render();
+};
 document.getElementById('archivoImportar').onchange=e=>{ if(e.target.files[0]) importar(e.target.files[0]); e.target.value=''; };
 document.getElementById('rDesde').onchange=renderRondas;
 document.getElementById('rHasta').onchange=renderRondas;
