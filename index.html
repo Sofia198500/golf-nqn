@@ -121,6 +121,12 @@
   table.carga .neto{color:var(--tinta-2); font-size:14px; white-space:nowrap}
   .acciones{display:flex; gap:10px; justify-content:flex-end; margin-top:14px}
   .lista{list-style:none; padding:0; margin:0 0 14px}
+  .asig{display:flex; align-items:center; gap:9px; padding:8px 10px; border-bottom:1px solid var(--linea); font-size:14px}
+  .asig:last-child{border-bottom:0}
+  .asig input[type=checkbox]{width:20px; height:20px; accent-color:var(--fairway); flex:0 0 auto}
+  .asig .f{font-weight:700; flex:0 0 76px}
+  .asig .q{color:var(--tinta-2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .asig .t{font-size:11.5px; color:var(--tinta-2); flex:0 0 auto}
   .lista li{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--linea)}
   .lista .nombre{flex:1; min-width:0}
   .lista input{width:auto}
@@ -239,7 +245,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v12.3</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v13</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnTorneos">Torneos</button>
@@ -262,7 +268,8 @@
     </section>
     <div id="torneoStats"></div>
     <section class="seccion">
-      <div class="seccion-cab"><h2>Rondas</h2><span class="hint" id="resumen"></span></div>
+      <div class="seccion-cab"><h2>Rondas</h2>
+        <span><button class="btn-q" id="btnAsignar">Asignar a torneo</button><span class="hint" id="resumen"></span></span></div>
       <div class="fila c2" style="margin-bottom:12px">
         <div><label for="rDesde">Desde</label><input type="date" id="rDesde"></div>
         <div><label for="rHasta">Hasta</label><input type="date" id="rHasta"></div>
@@ -423,6 +430,8 @@
     </div></div></div>
     <div class="fila"><div><label for="kNota">Frase del día</label><textarea id="kNota" placeholder="Opcional"></textarea></div></div>
     <div class="fila"><div><label for="kTorneo">Torneo</label><select id="kTorneo"></select></div></div>
+    <label>Jugadores de esta ronda</label>
+    <ul class="lista" id="kJugadores"></ul>
     <p class="hint" style="margin-bottom:12px">Dejalo en “Sin torneo” para las vueltas que no compiten, como las que jugás solo. Siguen contando para tus estadísticas.</p>
     <p class="hint" id="kAviso" style="margin-bottom:12px"></p>
     <div class="acciones"><button data-cerrar="dlgCondiciones">Cancelar</button><button class="btn-p" id="btnGuardarCondiciones">Guardar</button></div>
@@ -444,6 +453,31 @@
       <option value="promedio">Promedio de vs par neto (menor gana)</option>
       <option value="victorias">Cantidad de rondas ganadas</option>
     </select></div></div>
+  </div>
+</dialog>
+
+<dialog id="dlgAsignar">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Asignar rondas a un torneo</h2><button class="btn-x" id="btnCerrarAsignar">Cerrar</button></div>
+    <div class="fila"><div><label for="aTorneo">Torneo destino</label><select id="aTorneo"></select></div></div>
+    <div class="fila c2">
+      <div><label for="aCancha">Cancha</label><select id="aCancha"></select></div>
+      <div><label for="aEstado">Mostrar</label><select id="aEstado">
+        <option value="">Todas</option><option value="sin">Sin torneo</option>
+        <option value="otro">De otro torneo</option></select></div>
+    </div>
+    <div class="fila c2">
+      <div><label for="aDesde">Desde</label><input type="date" id="aDesde"></div>
+      <div><label for="aHasta">Hasta</label><input type="date" id="aHasta"></div>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:8px">
+      <button class="btn-q" id="btnTodas">Marcar todas</button>
+      <button class="btn-q" id="btnNinguna">Desmarcar</button>
+      <span class="hint" id="aConteo" style="margin-left:auto; align-self:center"></span>
+    </div>
+    <div id="aLista" style="max-height:42dvh; overflow:auto; border:1px solid var(--linea); border-radius:var(--r-m); margin-bottom:12px"></div>
+    <div id="aAvance"></div>
+    <div class="acciones"><button id="btnCerrarAsignar2">Cancelar</button><button class="btn-p" id="btnHacerAsignar">Asignar</button></div>
   </div>
 </dialog>
 
@@ -1630,6 +1664,81 @@ function guardarRapida(){
   document.getElementById('dlgRapida').close(); guardarRonda(r); render();
 }
 
+/* ===== Asignar rondas a un torneo, en lote =====
+   Ronda por ronda desde Condiciones funciona, pero con veinte vueltas es
+   inviable. Acá se filtran y se marcan de una. */
+let aMarcadas=new Set();
+function abrirAsignar(){
+  if(!estado.torneos.length){ toast('Creá un torneo primero'); abrirTorneos(); return; }
+  document.getElementById('aTorneo').innerHTML=
+    '<option value="">Sin torneo (sacarlas del torneo)</option>'+
+    estado.torneos.map(t=>`<option value="${t.id}"${t.id===torneoSel?' selected':''}>${esc(t.nombre)}</option>`).join('');
+  document.getElementById('aCancha').innerHTML='<option value="">Todas</option>'+
+    estado.canchas.map(c=>`<option value="${c.id}">${esc(canchaCorta(c))}</option>`).join('');
+  aMarcadas=new Set();
+  document.getElementById('aAvance').innerHTML='';
+  renderAsignar();
+  document.getElementById('dlgAsignar').showModal();
+}
+function rondasAsignables(){
+  const cid=document.getElementById('aCancha').value;
+  const est=document.getElementById('aEstado').value;
+  const des=document.getElementById('aDesde').value, has=document.getElementById('aHasta').value;
+  const dest=document.getElementById('aTorneo').value;
+  return estado.rondas.filter(r=>
+    (!cid||r.canchaId===cid) && (!des||r.fecha>=des) && (!has||r.fecha<=has) &&
+    (est===''||(est==='sin'?!r.torneoId:(r.torneoId&&r.torneoId!==dest)))
+  ).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+}
+function renderAsignar(){
+  const rs=rondasAsignables();
+  document.getElementById('aConteo').textContent=`${aMarcadas.size} de ${rs.length}`;
+  document.getElementById('aLista').innerHTML = rs.length? rs.map(r=>{
+    const t=r.torneoId?torneo(r.torneoId):null;
+    const quien=r.scores.map(x=>apodoOnombre(x.jugadorId)).join(', ');
+    return `<label class="asig"><input type="checkbox" data-rid="${r.id}"${aMarcadas.has(r.id)?' checked':''}>
+      <span class="f">${fechaCorta(r.fecha)}</span>
+      <span class="q">${esc(canchaCorta(cancha(r.canchaId)))} · ${esc(quien)}</span>
+      <span class="t">${t?esc(t.nombre):'sin torneo'}</span></label>`;
+  }).join('') : '<p class="hint" style="padding:14px; text-align:center">Ninguna ronda con esos filtros.</p>';
+}
+async function hacerAsignar(){
+  const dest=document.getElementById('aTorneo').value;
+  const ids=[...aMarcadas];
+  if(!ids.length){ toast('No marcaste ninguna ronda'); return; }
+  const btn=document.getElementById('btnHacerAsignar'); btn.disabled=true;
+  const av=document.getElementById('aAvance');
+  let n=0, fallo=null;
+  try{
+    for(const id of ids){
+      const r=estado.rondas.find(x=>x.id===id); if(!r) continue;
+      if(r.torneoId===dest){ n++; continue; }
+      r.torneoId=dest;
+      await api({accion:'guardarRonda', ronda:r});
+      n++;
+      av.innerHTML=`<p class="hint" style="margin-bottom:10px">Guardando ${n} de ${ids.length}…</p>`;
+    }
+  }catch(e){ fallo=e.message; }
+  btn.disabled=false;
+  try{ render(); }catch(e){}
+  if(fallo){ av.innerHTML=`<p class="hint" style="margin-bottom:10px; color:var(--bandera)">Se cortó en la ${n+1}: ${esc(fallo)}. Las ${n} anteriores quedaron guardadas.</p>`; return; }
+  aMarcadas=new Set(); av.innerHTML=''; renderAsignar();
+  toast(`${n} ronda${n===1?'':'s'} ${dest?'asignada'+(n===1?'':'s'):'sacada'+(n===1?'':'s')+' del torneo'}`);
+}
+document.getElementById('btnAsignar').onclick=abrirAsignar;
+document.getElementById('btnHacerAsignar').onclick=hacerAsignar;
+['btnCerrarAsignar','btnCerrarAsignar2'].forEach(id=>document.getElementById(id).onclick=()=>{
+  document.getElementById('dlgAsignar').close(); render(); });
+['aCancha','aEstado','aDesde','aHasta','aTorneo'].forEach(id=>
+  document.getElementById(id).addEventListener('change',()=>{ renderAsignar(); }));
+document.getElementById('aLista').addEventListener('change',e=>{
+  const c=e.target.closest('[data-rid]'); if(!c) return;
+  if(c.checked) aMarcadas.add(c.dataset.rid); else aMarcadas.delete(c.dataset.rid);
+  document.getElementById('aConteo').textContent=`${aMarcadas.size} de ${rondasAsignables().length}`;
+});
+document.getElementById('btnTodas').onclick=()=>{ rondasAsignables().forEach(r=>aMarcadas.add(r.id)); renderAsignar(); };
+document.getElementById('btnNinguna').onclick=()=>{ aMarcadas=new Set(); renderAsignar(); };
+
 function abrirTorneos(){ renderTorneos(); document.getElementById('dlgTorneos').showModal(); }
 function renderTorneos(){
   document.getElementById('listaTorneos').innerHTML=estado.torneos.map(t=>{
@@ -1929,8 +2038,27 @@ function abrirCondiciones(id){
   document.getElementById('kAviso').textContent = det
     ? 'Cambiar la cancha o el tramo recalcula el par de cada hoyo contra la tarjeta nueva. Los golpes anotados no se tocan.'
     : '';
+  renderCondJugadores(r);
   document.getElementById('dlgCondiciones').showModal();
 }
+function renderCondJugadores(r){
+  document.getElementById('kJugadores').innerHTML=r.scores.map(s=>{
+    const g=totalGolpes(s), jug=s.hoyos?s.hoyos.filter(h=>h.g).length:nHoyos(r);
+    return `<li><span class="nombre">${esc(apodoOnombre(s.jugadorId))}</span>
+      <span class="hint">${g} golpes · ${jug} hoyos</span>
+      ${r.scores.length>1?`<button class="btn-x" data-quitar-sc="${s.jugadorId}">Quitar</button>`:'<span class="hint">único</span>'}</li>`;
+  }).join('');
+}
+document.getElementById('kJugadores').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-quitar-sc]'); if(!b) return;
+  const r=estado.rondas.find(x=>x.id===condId); if(!r) return;
+  const jid=b.dataset.quitarSc;
+  if(!confirm(`¿Quitar a ${apodoOnombre(jid)} de esta ronda? Se borran sus golpes de esta vuelta y no se puede deshacer.`)) return;
+  r.scores=r.scores.filter(s=>s.jugadorId!==jid);
+  await guardarRonda(r);
+  renderCondJugadores(r); render(); toast('Jugador quitado de la ronda');
+});
+
 function guardarCondiciones(){
   const r=estado.rondas.find(x=>x.id===condId); if(!r) return;
   const nuevoTramo=kTramo, viejosHoyos=hoyosDe(r.tramo||'18').length, nuevosHoyos=hoyosDe(nuevoTramo).length;
