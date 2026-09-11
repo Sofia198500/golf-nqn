@@ -239,9 +239,10 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v10.1</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v12</b> · 07/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
+      <button class="btn-x" id="btnTorneos">Torneos</button>
       <button class="btn-x" id="btnJugadores">Jugadores</button>
       <button class="btn-x" id="btnCanchas">Canchas</button>
     </div>
@@ -255,10 +256,11 @@
 
   <div id="vInicio">
     <section class="tablero">
-      <div class="tablero-cab"><h2>Tabla de posiciones</h2><select id="temporada" aria-label="Temporada"></select></div>
+      <div class="tablero-cab"><h2>Tabla de posiciones</h2><select id="selTorneo" aria-label="Torneo"></select></div>
       <div id="posiciones"></div>
       <p class="regla" id="reglaTabla">Puntos por ronda: 3 al primero, 2 al segundo, 1 al tercero.</p>
     </section>
+    <div id="torneoStats"></div>
     <section class="seccion">
       <div class="seccion-cab"><h2>Rondas</h2><span class="hint" id="resumen"></span></div>
       <div class="fila c2" style="margin-bottom:12px">
@@ -336,7 +338,9 @@
     <button class="btn-q" id="btnLinkGrupo">Copiar link del grupo</button>
     <button class="btn-q" id="btnExportar">Exportar respaldo</button>
     <button class="btn-q" id="btnImportar">Importar respaldo</button>
+    <button class="btn-q" id="btnImportarRondas">Importar rondas</button>
     <input type="file" id="archivoImportar" accept="application/json" hidden>
+    <input type="file" id="archivoRondas" accept="application/json" hidden>
   </footer>
 </main>
 
@@ -356,6 +360,7 @@
       </div></div>
     </div>
     <div class="fila"><div><label for="sCancha">Cancha</label><select id="sCancha"></select></div></div>
+    <div class="fila"><div><label for="sTorneo">Torneo</label><select id="sTorneo"></select></div></div>
     <div class="fila"><div><label>Viento</label><div class="chips" id="sViento">
       <button type="button" data-v="Calmo">Calmo</button><button type="button" data-v="Ventoso">Ventoso</button><button type="button" data-v="Vendaval">Vendaval</button>
     </div></div></div>
@@ -374,6 +379,7 @@
       <div><label>Hoyos</label><div class="toggle" id="rHoyos"><button type="button" data-v="9">9</button><button type="button" data-v="18" aria-pressed="true">18</button></div></div>
     </div>
     <div class="fila"><div><label for="rCancha">Cancha</label><select id="rCancha"></select></div></div>
+    <div class="fila"><div><label for="rTorneo">Torneo</label><select id="rTorneo"></select></div></div>
     <table class="carga"><thead><tr><th></th><th>Jugador</th><th>Golpes</th><th>Hcp</th><th>Neto</th></tr></thead><tbody id="rScores"></tbody></table>
     <div class="fila"><div><label for="rNota">Frase del día</label><textarea id="rNota" placeholder="Opcional"></textarea></div></div>
     <div class="acciones"><button data-cerrar="dlgRapida">Cancelar</button><button class="btn-p" id="btnGuardarRapida">Guardar</button></div>
@@ -416,13 +422,39 @@
       <button type="button" data-v="Calmo">Calmo</button><button type="button" data-v="Ventoso">Ventoso</button><button type="button" data-v="Vendaval">Vendaval</button>
     </div></div></div>
     <div class="fila"><div><label for="kNota">Frase del día</label><textarea id="kNota" placeholder="Opcional"></textarea></div></div>
-    <label style="display:flex; align-items:center; gap:9px; margin-bottom:10px; color:var(--tinta)">
-      <input type="checkbox" id="kCuenta" style="width:20px; height:20px; accent-color:var(--fairway)">
-      Cuenta para la tabla de posiciones
-    </label>
-    <p class="hint" style="margin-bottom:12px">Destildalo en las vueltas que jugaste solo o sin el grupo completo, para que no repartan puntos.</p>
+    <div class="fila"><div><label for="kTorneo">Torneo</label><select id="kTorneo"></select></div></div>
+    <p class="hint" style="margin-bottom:12px">Dejalo en “Sin torneo” para las vueltas que no compiten, como las que jugás solo. Siguen contando para tus estadísticas.</p>
     <p class="hint" id="kAviso" style="margin-bottom:12px"></p>
     <div class="acciones"><button data-cerrar="dlgCondiciones">Cancelar</button><button class="btn-p" id="btnGuardarCondiciones">Guardar</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlgTorneos">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Torneos</h2><button class="btn-x" data-cerrar="dlgTorneos">Cerrar</button></div>
+    <p class="hint" style="margin-bottom:10px">Un torneo agrupa las rondas que compiten entre sí. Las rondas sin torneo no reparten puntos.</p>
+    <ul class="lista" id="listaTorneos"></ul>
+    <div class="fila" style="grid-template-columns:1fr auto; align-items:end">
+      <div><label for="tNombre">Nombre del torneo</label><input id="tNombre" placeholder="Ej: Copa Primavera 2026"></div>
+      <button class="btn-p" id="btnAgregarTorneo">Crear</button>
+    </div>
+    <div class="fila"><div><label for="tSistema">Cómo se define el ganador</label><select id="tSistema">
+      <option value="puntos">Puntos por ronda (3 / 2 / 1)</option>
+      <option value="vspar">Suma de vs par neto (menor gana)</option>
+      <option value="promedio">Promedio de vs par neto (menor gana)</option>
+      <option value="victorias">Cantidad de rondas ganadas</option>
+    </select></div></div>
+  </div>
+</dialog>
+
+<dialog id="dlgImpRondas">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Importar rondas</h2><button class="btn-x" data-cerrar="dlgImpRondas">Cerrar</button></div>
+    <div id="impResumen"></div>
+    <div class="fila"><div><label for="impJugador">Estas rondas son de</label><select id="impJugador"></select></div></div>
+    <p class="hint" style="margin-bottom:12px">Si ya existe una ronda en la misma fecha y cancha, el jugador se agrega a esa ronda en vez de crear una nueva. Las que ya tengan a ese jugador se saltean.</p>
+    <div id="impDetalle"></div>
+    <div class="acciones"><button data-cerrar="dlgImpRondas">Cancelar</button><button class="btn-p" id="btnHacerImport">Importar</button></div>
   </div>
 </dialog>
 
@@ -511,8 +543,8 @@ const K_CFG='golf-nqn:config';      // jugadores y canchas
 const P_RONDA='golf-nqn:ronda:';    // una clave por ronda
 const uid=()=>Math.random().toString(36).slice(2,9);
 const hoy=()=>new Date().toISOString().slice(0,10);
-let estado={jugadores:[{id:uid(),nombre:'Cristian',apellido:'',apodo:'',hcp:0,tee:'blanco'}],canchas:CANCHAS_BASE,rondas:[]};
-let modoGuardado='local', errorConexion='', temporadaSel=null, vista='inicio';
+let estado={torneos:[], jugadores:[{id:uid(),nombre:'Cristian',apellido:'',apodo:'',hcp:0,tee:'blanco'}],canchas:CANCHAS_BASE,rondas:[]};
+let modoGuardado='local', errorConexion='', torneoSel=null, vista='inicio';
 let juego=null, editandoId=null;
 
 /* ===== Conexión con la planilla de Google =====
@@ -567,7 +599,7 @@ async function refrescar(primeraVez){
   if(!apiURL()){ modoGuardado='local'; pintarEstado(); return; }
   try{
     const d=await jsonp({t:Date.now()});
-    if(d.config){ if(d.config.jugadores) estado.jugadores=d.config.jugadores; if(d.config.canchas) estado.canchas=d.config.canchas; }
+    if(d.config){ if(d.config.jugadores) estado.jugadores=d.config.jugadores; if(d.config.canchas) estado.canchas=d.config.canchas; if(d.config.torneos) estado.torneos=d.config.torneos; }
     estado.rondas=d.rondas||[];
     modoGuardado='compartido';
     normalizar();
@@ -598,14 +630,17 @@ function normalizar(){
     if(j.apellido===undefined) j.apellido='';
     if(j.apodo===undefined) j.apodo='';
   });
-  (estado.rondas||[]).forEach(r=>{ if(r.cuenta===undefined) r.cuenta = r.scores.length>=2; });
+  estado.torneos=estado.torneos||[];
+  // Antes había un tilde "cuenta para la tabla". Ahora manda el torneo:
+  // una ronda sin torneo no reparte puntos en ninguna tabla.
+  (estado.rondas||[]).forEach(r=>{ if(r.torneoId===undefined) r.torneoId=''; });
   (estado.rondas||[]).forEach(r=>r.scores.forEach(s=>{ if(s.hoyos) s.hoyos.forEach(h=>{ if(h.drive!==undefined&&h.salida===undefined){h.salida=h.drive; delete h.drive;} }); }));
 }
 function migrar(d){ estado=d; normalizar(); return estado; }
 
 async function guardarConfig(){
   if(!apiURL()){ pintarEstado(); return; }
-  try{ await api({accion:'guardarConfig', config:{jugadores:estado.jugadores,canchas:estado.canchas}}); }
+  try{ await api({accion:'guardarConfig', config:{jugadores:estado.jugadores,canchas:estado.canchas,torneos:estado.torneos}}); }
   catch(e){ toast('No se pudo guardar: '+e.message); }
   pintarEstado();
 }
@@ -745,15 +780,104 @@ function resultados(r){
   return f;
 }
 const PUNTOS={1:3,2:2,3:1};
-function tabla(t){
-  const acc={}; estado.jugadores.forEach(j=>acc[j.id]={id:j.id,nombre:j.nombre,rondas:0,victorias:0,puntos:0,sumaPar:0,mejor:null});
-  estado.rondas.filter(r=>r.fecha.slice(0,4)===t && r.cuenta!==false).forEach(r=>resultados(r).forEach(f=>{
-    const a=acc[f.jugadorId]; if(!a) return;
+const SISTEMAS={puntos:'Puntos 3 / 2 / 1', vspar:'Suma de vs par neto',
+  promedio:'Promedio de vs par neto', victorias:'Rondas ganadas'};
+
+const torneo=id=>estado.torneos.find(t=>t.id===id)||null;
+function rondasDeTorneo(tid){
+  return estado.rondas.filter(r=>r.torneoId===tid).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+}
+
+/* La tabla ya no es global: cada torneo define su propio criterio de ganador. */
+function tabla(tid){
+  const t=torneo(tid); if(!t) return [];
+  const sis=t.sistema||'puntos';
+  const acc={};
+  rondasDeTorneo(tid).forEach(r=>resultados(r).forEach(f=>{
+    const a=acc[f.jugadorId]=acc[f.jugadorId]||{id:f.jugadorId,nombre:apodoOnombre(f.jugadorId),
+      rondas:0,victorias:0,puntos:0,sumaPar:0,mejor:null};
     a.rondas++; a.puntos+=PUNTOS[f.puesto]||0; a.sumaPar+=f.vsPar;
     if(f.puesto===1) a.victorias++;
     if(a.mejor===null||f.vsPar<a.mejor) a.mejor=f.vsPar;
   }));
-  return Object.values(acc).filter(a=>a.rondas>0).sort((a,b)=>b.puntos-a.puntos||(a.sumaPar/a.rondas)-(b.sumaPar/b.rondas));
+  const arr=Object.values(acc);
+  arr.forEach(a=>a.prom=a.rondas?a.sumaPar/a.rondas:0);
+  if(sis==='vspar')     arr.sort((a,b)=>a.sumaPar-b.sumaPar);
+  else if(sis==='promedio') arr.sort((a,b)=>a.prom-b.prom);
+  else if(sis==='victorias') arr.sort((a,b)=>b.victorias-a.victorias||a.prom-b.prom);
+  else arr.sort((a,b)=>b.puntos-a.puntos||a.prom-b.prom);
+  return arr;
+}
+
+/* Estadísticas del torneo: lo memorable y lo que sirve para picarse. */
+function statsTorneo(tid){
+  const rs=rondasDeTorneo(tid);
+  if(!rs.length) return null;
+  const S={rondas:rs.length, jugadores:new Set(), mejorRonda:null, peorRonda:null,
+    hoyosBuenos:[], hoyosMalos:[], porJugador:{}, porHoyo:{}, canchas:new Set()};
+  rs.forEach(r=>{
+    S.canchas.add(canchaCorta(cancha(r.canchaId)));
+    const c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
+    resultados(r).forEach(f=>{
+      S.jugadores.add(f.jugadorId);
+      const P=S.porJugador[f.jugadorId]=S.porJugador[f.jugadorId]||
+        {id:f.jugadorId,n:0,sumaPar:0,putts:0,nPutts:0,pen:0,birdies:0,pares:0,dobles:0};
+      P.n++; P.sumaPar+=f.vsPar;
+      const ref={jid:f.jugadorId, fecha:r.fecha, cancha:canchaCorta(cancha(r.canchaId)), vsPar:f.vsPar};
+      if(!S.mejorRonda||f.vsPar<S.mejorRonda.vsPar) S.mejorRonda=ref;
+      if(!S.peorRonda ||f.vsPar>S.peorRonda.vsPar)  S.peorRonda=ref;
+      if(!f.hoyos) return;
+      f.hoyos.forEach((h,k)=>{
+        if(!h.g) return;
+        const nh=idx[k]+1, par=c.pars[idx[k]]||4, dif=h.g-par;
+        if(h.putts!=null){ P.putts+=h.putts; P.nPutts++; }
+        if(h.pen!=null) P.pen+=h.pen;
+        if(dif<=-1) P.birdies++; else if(dif===0) P.pares++; else if(dif>=2) P.dobles++;
+        const item={jid:f.jugadorId, fecha:r.fecha, nh, par, g:h.g, dif, cancha:canchaCorta(c)};
+        if(dif<=0) S.hoyosBuenos.push(item);
+        if(dif>=2) S.hoyosMalos.push(item);
+        const K=nh+'|'+r.canchaId;
+        const H=S.porHoyo[K]=S.porHoyo[K]||{nh,par,cancha:canchaCorta(c),n:0,suma:0};
+        H.n++; H.suma+=dif;
+      });
+    });
+  });
+  S.hoyosBuenos.sort((a,b)=>a.dif-b.dif||a.par-b.par);
+  S.hoyosMalos.sort((a,b)=>b.dif-a.dif);
+  return S;
+}
+
+function renderTorneoStats(tid){
+  const el=document.getElementById('torneoStats');
+  const t=torneo(tid);
+  if(!t){ el.innerHTML=''; return; }
+  const S=statsTorneo(tid);
+  if(!S){ el.innerHTML=`<div class="vacio-s" style="margin-bottom:22px">Sin rondas en este torneo todavía. Asignalas desde <b>Condiciones</b> en cada ronda.</div>`; return; }
+  const jug=Object.values(S.porJugador);
+  const lider=(arr,fn,menor)=>{ const v=arr.filter(fn); if(!v.length) return null;
+    return v.slice().sort((a,b)=>menor?fn(a)-fn(b):fn(b)-fn(a))[0]; };
+  const puttsArr=jug.filter(p=>p.nPutts).map(p=>({...p,pp:p.putts/p.nPutts}));
+  const mejorPutt=puttsArr.length?puttsArr.slice().sort((a,b)=>a.pp-b.pp)[0]:null;
+  const masBirdies=jug.slice().sort((a,b)=>b.birdies-a.birdies)[0];
+  const masPen=jug.slice().sort((a,b)=>b.pen-a.pen)[0];
+  const hoyos=Object.values(S.porHoyo).filter(h=>h.n>=2).sort((a,b)=>b.suma/b.n-a.suma/a.n);
+  const fila=(et,val,quien)=>`<div class="lin"><span class="et">${et}</span>
+    <span style="flex:1; font-weight:600">${quien||'—'}</span><span class="n">${val}</span></div>`;
+  el.innerHTML=`
+    <div class="diag" style="margin-bottom:22px">
+      <h3>${esc(t.nombre)}</h3>
+      <div class="sub">${S.rondas} ronda${S.rondas===1?'':'s'} · ${S.jugadores.size} jugador${S.jugadores.size===1?'':'es'} · ${[...S.canchas].join(', ')} · ${SISTEMAS[t.sistema||'puntos']}</div>
+      ${fila('Mejor ronda', fmtPar(S.mejorRonda.vsPar), esc(apodoOnombre(S.mejorRonda.jid))+' · '+fechaCorta(S.mejorRonda.fecha))}
+      ${fila('Peor ronda', fmtPar(S.peorRonda.vsPar), esc(apodoOnombre(S.peorRonda.jid))+' · '+fechaCorta(S.peorRonda.fecha))}
+      ${mejorPutt?fila('Mejor putter', mejorPutt.pp.toFixed(1)+' /hoyo', esc(apodoOnombre(mejorPutt.id))):''}
+      ${masBirdies&&masBirdies.birdies?fila('Más birdies', masBirdies.birdies, esc(apodoOnombre(masBirdies.id))):''}
+      ${masPen&&masPen.pen?fila('Más penalidades', masPen.pen, esc(apodoOnombre(masPen.id))):''}
+      ${S.hoyosBuenos.length?`<div class="foco"><b>Mejores golpes:</b> ${S.hoyosBuenos.slice(0,3).map(h=>
+        `${esc(apodoOnombre(h.jid))} hoyo ${h.nh} (par ${h.par}) con ${h.g}`).join(' · ')}</div>`:''}
+      ${S.hoyosMalos.length?`<div class="foco"><b>Peores golpes:</b> ${S.hoyosMalos.slice(0,3).map(h=>
+        `${esc(apodoOnombre(h.jid))} hoyo ${h.nh} (par ${h.par}) con ${h.g}`).join(' · ')}</div>`:''}
+      ${hoyos.length?`<div class="foco"><b>Hoyo más difícil del torneo:</b> ${hoyos[0].nh} de ${esc(hoyos[0].cancha)}, par ${hoyos[0].par}, ${fmtPar(Math.round(hoyos[0].suma/hoyos[0].n*10)/10)} de promedio.</div>`:''}
+    </div>`;
 }
 
 function render(){
@@ -761,26 +885,35 @@ function render(){
   document.getElementById('vStats').classList.toggle('oculto',vista!=='stats');
   document.getElementById('vHoyos').classList.toggle('oculto',vista!=='hoyos');
   document.getElementById('barraInicio').classList.toggle('oculto',vista!=='inicio');
-  if(vista==='inicio'){renderTemporadas(); renderPosiciones(); renderRondas();}
+  if(vista==='inicio'){renderSelectorTorneo(); renderPosiciones(); renderTorneoStats(torneoSel); renderRondas();}
   else if(vista==='hoyos') renderHoyos();
   else renderStats();
 }
-function renderTemporadas(){
-  const sel=document.getElementById('temporada');
-  const a=[...new Set(estado.rondas.map(r=>r.fecha.slice(0,4)))].sort().reverse();
-  if(!a.length) a.push(hoy().slice(0,4));
-  if(!temporadaSel||!a.includes(temporadaSel)) temporadaSel=a[0];
-  sel.innerHTML=a.map(x=>`<option value="${x}"${x===temporadaSel?' selected':''}>Temporada ${x}</option>`).join('');
+function renderSelectorTorneo(){
+  const sel=document.getElementById('selTorneo');
+  const ops=estado.torneos.map(t=>`<option value="${t.id}"${t.id===torneoSel?' selected':''}>${esc(t.nombre)}</option>`).join('');
+  sel.innerHTML=ops||'<option value="">Sin torneos</option>';
+  if(estado.torneos.length && !estado.torneos.some(t=>t.id===torneoSel)) torneoSel=estado.torneos[0].id;
+  sel.value=torneoSel||'';
 }
 function renderPosiciones(){
-  const f=tabla(temporadaSel), el=document.getElementById('posiciones');
-  const fuera=estado.rondas.filter(r=>r.fecha.slice(0,4)===temporadaSel && r.cuenta===false).length;
-  document.getElementById('reglaTabla').textContent =
-    'Puntos por ronda: 3 al primero, 2 al segundo, 1 al tercero.' +
-    (fuera?` ${fuera} ronda${fuera===1?'':'s'} fuera de la tabla (se marcan en Condiciones).`:'');
-  if(!f.length){ el.innerHTML=`<p class="vacio">Sin rondas en ${temporadaSel}.</p>`; return; }
-  el.innerHTML=`<table class="pos"><thead><tr><th>Jugador</th><th>Rondas</th><th>Ganó</th><th>Prom.</th><th>Mejor</th><th>Pts</th></tr></thead><tbody>`+
-    f.map((x,i)=>`<tr><td class="nom">${i===0?'<span class="flag"></span>':''}${esc(nomCompleto(x.id))}</td><td>${x.rondas}</td><td>${x.victorias}</td><td>${fmtPar(Math.round(x.sumaPar/x.rondas))}</td><td>${fmtPar(x.mejor)}</td><td class="pts">${x.puntos}</td></tr>`).join('')+'</tbody></table>';
+  const el=document.getElementById('posiciones');
+  const regla=document.getElementById('reglaTabla');
+  if(!estado.torneos.length){
+    el.innerHTML=`<p class="vacio">Todavía no hay torneos. Creá uno en <b>Torneos</b> y asignale rondas.</p>`;
+    regla.textContent='Cada torneo tiene su propia tabla y su propio criterio de ganador.';
+    return;
+  }
+  const t=torneo(torneoSel), f=tabla(torneoSel), sis=(t&&t.sistema)||'puntos';
+  const sueltas=estado.rondas.filter(r=>!r.torneoId).length;
+  regla.textContent=SISTEMAS[sis]+(sueltas?` · ${sueltas} ronda${sueltas===1?'':'s'} sin torneo`:'');
+  if(!f.length){ el.innerHTML=`<p class="vacio">Sin rondas asignadas a este torneo.</p>`; return; }
+  const col = sis==='vspar' ? ['Total','sumaPar'] : sis==='promedio' ? ['Prom.','prom']
+            : sis==='victorias' ? ['Ganó','victorias'] : ['Pts','puntos'];
+  el.innerHTML=`<table class="pos"><thead><tr><th>Jugador</th><th>Rondas</th><th>Ganó</th><th>Prom.</th><th>Mejor</th><th>${col[0]}</th></tr></thead><tbody>`+
+    f.map((x,i)=>`<tr><td class="nom">${i===0?'<span class="flag"></span>':''}${esc(x.nombre)}</td>
+      <td>${x.rondas}</td><td>${x.victorias}</td><td>${fmtPar(Math.round(x.prom))}</td><td>${fmtPar(x.mejor)}</td>
+      <td class="pts">${col[1]==='puntos'?x.puntos:col[1]==='victorias'?x.victorias:col[1]==='prom'?fmtPar(Math.round(x.prom*10)/10):fmtPar(x.sumaPar)}</td></tr>`).join('')+'</tbody></table>';
 }
 function claseHoyo(g,par){ if(!g) return ''; const d=g-par; return d<=-2?'eag':d===-1?'bir':d===0?'':d===1?'bog':'dbl'; }
 function renderRondas(){
@@ -809,7 +942,7 @@ function fichaRonda(r, abierta){
     <summary>
       <div class="l1"><span class="fecha">${fmtFecha(r.fecha)}</span>
         <span class="gan">${esc(gan)} <b class="${g&&g.vsPar<0?'bajo':''}">${g?fmtPar(g.vsPar):''}</b></span></div>
-      <div class="l2">${esc(canchaCorta(c))} · ${nHoyos(r)} hoyos${r.viento?' · '+r.viento:''}${r.cuenta===false?' · fuera de tabla':''}${r.nota?' · “'+esc(r.nota)+'”':''}</div>
+      <div class="l2">${esc(canchaCorta(c))} · ${nHoyos(r)} hoyos${r.viento?' · '+r.viento:''}${r.torneoId&&torneo(r.torneoId)?' · '+esc(torneo(r.torneoId).nombre):''}${r.nota?' · “'+esc(r.nota)+'”':''}</div>
     </summary>
     <div class="cuerpo">
       <table class="sc"><thead><tr><th>Jugador</th><th>Golpes</th><th>Hcp</th><th>Neto</th><th>vs par</th>${det?'<th>Putts</th>':''}</tr></thead><tbody>
@@ -1252,6 +1385,8 @@ function abrirSetup(){
   document.getElementById('setupTitulo').textContent='Arrancar ronda';
   document.getElementById('sFecha').value=hoy();
   document.getElementById('sCancha').innerHTML=estado.canchas.map(c=>`<option value="${c.id}">${esc(c.nombre)} — ${esc(c.ciudad)}</option>`).join('');
+  document.getElementById('sTorneo').innerHTML='<option value="">Sin torneo</option>'+
+    estado.torneos.map(t=>`<option value="${t.id}"${t.id===torneoSel?' selected':''}>${esc(t.nombre)}</option>`).join('');
   sViento=''; document.querySelectorAll('#sViento button').forEach(b=>b.setAttribute('aria-pressed','false'));
   setTramo('18');
   document.getElementById('sJugadores').innerHTML=estado.jugadores.map(j=>`<tr data-j="${j.id}">
@@ -1270,7 +1405,7 @@ function empezar(){
   });
   if(!sc.length){ toast('Marcá al menos un jugador'); return; }
   juego={id:uid(), fecha:document.getElementById('sFecha').value||hoy(), canchaId:document.getElementById('sCancha').value,
-    tramo:sTramo, viento:sViento, nota:'', scores:sc, hoyoActual:0};
+    tramo:sTramo, viento:sViento, nota:'', torneoId:document.getElementById('sTorneo').value, scores:sc, hoyoActual:0};
   celdaSel=null; ocultarScore=false;
   document.getElementById('dlgSetup').close();
   document.getElementById('dlgJuego').showModal();
@@ -1439,13 +1574,9 @@ function cerrarRonda(guardarla){
       for(let i=ini;i<=fin;i++) if(!s.hoyos[i].g) s.hoyos[i].g=c.pars[idx[i]]||4;
     });
     juego.scores=juego.scores.filter(s=>s.hoyos.some(h=>h.g));
-    // Una vuelta con un solo jugador anotado no reparte puntos. Al editar
-    // se respeta lo que hayas marcado a mano en Condiciones.
-    if(!editandoId || juego.cuenta===undefined) juego.cuenta = juego.scores.length>=2;
     const {hoyoActual,...ronda}=juego;
     if(editandoId){ const i=estado.rondas.findIndex(r=>r.id===editandoId); if(i>=0) estado.rondas[i]=ronda; toast('Ronda actualizada'); }
     else { estado.rondas.push(ronda); toast('Ronda guardada'); }
-    temporadaSel=ronda.fecha.slice(0,4);
     guardarRonda(ronda);
   }
   juego=null; editandoId=null; document.getElementById('dlgJuego').close(); render();
@@ -1465,6 +1596,8 @@ function abrirRapida(r){
       <td><input type="number" class="golpes" inputmode="numeric" value="${s?totalGolpes(s):''}" placeholder="—"></td>
       <td><input type="number" class="hcp" value="${s?s.hcp:j.hcp}" inputmode="numeric"></td><td class="neto">—</td></tr>`;
   }).join('');
+  document.getElementById('rTorneo').innerHTML='<option value="">Sin torneo</option>'+
+    estado.torneos.map(t=>`<option value="${t.id}"${(r?r.torneoId:torneoSel)===t.id?' selected':''}>${esc(t.nombre)}</option>`).join('');
   setRTramo(r?nHoyos(r):18);
   document.getElementById('rNota').value=r?(r.nota||''):'';
   document.getElementById('dlgRapida').showModal();
@@ -1490,12 +1623,51 @@ function guardarRapida(){
   if(!sc.length){ toast('Marcá al menos un jugador'); return; }
   const f=document.getElementById('rFecha').value||hoy();
   const r={id:rEditId||uid(), fecha:f, canchaId:document.getElementById('rCancha').value, tramo:rTramo===9?'9':'18',
-    viento:'', nota:document.getElementById('rNota').value.trim(), cuenta:sc.length>=2, scores:sc};
+    viento:'', nota:document.getElementById('rNota').value.trim(), torneoId:document.getElementById('rTorneo').value, scores:sc};
   if(rEditId){ const i=estado.rondas.findIndex(x=>x.id===rEditId); if(i>=0) estado.rondas[i]=r; toast('Ronda actualizada'); }
   else { estado.rondas.push(r); toast('Ronda guardada'); }
-  temporadaSel=f.slice(0,4); rEditId=null;
+  rEditId=null;
   document.getElementById('dlgRapida').close(); guardarRonda(r); render();
 }
+
+function abrirTorneos(){ renderTorneos(); document.getElementById('dlgTorneos').showModal(); }
+function renderTorneos(){
+  document.getElementById('listaTorneos').innerHTML=estado.torneos.map(t=>{
+    const n=rondasDeTorneo(t.id).length;
+    return `<li><input class="nombre" value="${esc(t.nombre)}" data-tnom="${t.id}" aria-label="Nombre del torneo">
+      <select data-tsis="${t.id}" style="width:auto">${Object.entries(SISTEMAS).map(([k,v])=>
+        `<option value="${k}"${(t.sistema||'puntos')===k?' selected':''}>${v}</option>`).join('')}</select>
+      <span class="hint">${n}</span>
+      <button class="btn-x" data-tdel="${t.id}">Borrar</button></li>`;
+  }).join('')||'<li class="hint">Sin torneos todavía.</li>';
+}
+function agregarTorneo(){
+  const n=document.getElementById('tNombre').value.trim(); if(!n) return;
+  const t={id:uid(), nombre:n, sistema:document.getElementById('tSistema').value};
+  estado.torneos.push(t); torneoSel=t.id;
+  document.getElementById('tNombre').value='';
+  guardar(); renderTorneos(); render();
+}
+document.getElementById('btnTorneos').onclick=()=>abrirTorneos();
+document.getElementById('btnAgregarTorneo').onclick=agregarTorneo;
+document.getElementById('tNombre').addEventListener('keydown',e=>{ if(e.key==='Enter') agregarTorneo(); });
+document.getElementById('selTorneo').onchange=e=>{ torneoSel=e.target.value; renderPosiciones(); renderTorneoStats(torneoSel); };
+document.getElementById('listaTorneos').addEventListener('change',e=>{
+  const el=e.target, id=el.dataset.tnom||el.dataset.tsis;
+  const t=torneo(id); if(!t) return;
+  if(el.dataset.tnom){ const v=el.value.trim(); if(!v){ el.value=t.nombre; return; } t.nombre=v; }
+  else t.sistema=el.value;
+  guardar(); render();
+});
+document.getElementById('listaTorneos').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-tdel]'); if(!b) return;
+  const id=b.dataset.tdel, n=rondasDeTorneo(id).length;
+  if(!confirm(n?`Este torneo tiene ${n} ronda${n===1?'':'s'}. Se borra el torneo y esas rondas quedan sin torneo. ¿Seguir?`:'¿Borrar este torneo?')) return;
+  for(const r of rondasDeTorneo(id)){ r.torneoId=''; await guardarRonda(r); }
+  estado.torneos=estado.torneos.filter(t=>t.id!==id);
+  if(torneoSel===id) torneoSel=(estado.torneos[0]||{}).id||null;
+  guardar(); renderTorneos(); render();
+});
 
 function abrirJugadores(){ renderJugadores(); document.getElementById('dlgJugadores').showModal(); }
 function renderJugadores(){
@@ -1555,6 +1727,77 @@ document.getElementById('cDetalle').addEventListener('change',e=>{
   guardar(); render();
 });
 
+/* ===== Importar rondas de una planilla =====
+   Une por fecha + cancha: si la vuelta ya existe, suma al jugador ahí. Así las
+   rondas que cargaste solo pasan a ser rondas compartidas de verdad. */
+let impDatos=null;
+function abrirImportRondas(d){
+  impDatos=d;
+  const n=(d.rondas||[]).length;
+  const j=d.jugador||{};
+  const nom=[j.nombre,j.apodo?`"${j.apodo}"`:'',j.apellido].filter(Boolean).join(' ');
+  document.getElementById('impResumen').innerHTML=
+    `<div class="diag" style="margin-bottom:14px"><h3>${n} ronda${n===1?'':'s'} en el archivo</h3>
+     <div class="sub">${esc(d.canchaNombre||cancha(d.canchaId).nombre)}${nom?' · '+esc(nom):''}</div></div>`;
+  // preselecciona por apodo o nombre
+  const sel=document.getElementById('impJugador');
+  sel.innerHTML=estado.jugadores.map(x=>`<option value="${x.id}">${esc(nomCompleto(x))}</option>`).join('');
+  const cal=estado.jugadores.find(x=>
+    (j.apodo&&x.apodo&&x.apodo.toLowerCase()===j.apodo.toLowerCase()) ||
+    (j.apellido&&x.apellido&&x.apellido.toLowerCase()===j.apellido.toLowerCase()));
+  if(cal) sel.value=cal.id;
+  previsualizar();
+  document.getElementById('dlgImpRondas').showModal();
+}
+function planImport(){
+  const jid=document.getElementById('impJugador').value;
+  const cid=impDatos.canchaId;
+  const nuevas=[], sumadas=[], repetidas=[];
+  (impDatos.rondas||[]).forEach(x=>{
+    const ex=estado.rondas.find(r=>r.fecha===x.fecha && r.canchaId===cid);
+    if(!ex) nuevas.push(x);
+    else if(ex.scores.some(s=>s.jugadorId===jid)) repetidas.push(x);
+    else sumadas.push({x,ex});
+  });
+  return {jid,cid,nuevas,sumadas,repetidas};
+}
+function previsualizar(){
+  const p=planImport();
+  document.getElementById('impDetalle').innerHTML=`
+    <ul class="lista" style="margin-bottom:10px">
+      <li><span class="nombre">Rondas nuevas</span><b>${p.nuevas.length}</b></li>
+      <li><span class="nombre">Se suma a una ronda existente</span><b>${p.sumadas.length}</b></li>
+      <li><span class="nombre">Ya estaban (se saltean)</span><b>${p.repetidas.length}</b></li>
+    </ul>
+    ${p.sumadas.length?`<p class="hint" style="margin-bottom:10px">Se une a: ${p.sumadas.map(o=>fechaCorta(o.x.fecha)).join(', ')}</p>`:''}`;
+}
+async function hacerImport(){
+  const p=planImport();
+  const j=jugador(p.jid);
+  let n=0;
+  for(const x of p.nuevas){
+    const r={id:uid(), fecha:x.fecha, canchaId:p.cid, tramo:x.tramo||'18', viento:'', nota:'',
+      torneoId:'', scores:[{jugadorId:p.jid, tee:x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:x.hoyos}]};
+    estado.rondas.push(r); await guardarRonda(r); n++;
+  }
+  for(const o of p.sumadas){
+    o.ex.scores.push({jugadorId:p.jid, tee:o.x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:o.x.hoyos});
+    await guardarRonda(o.ex); n++;
+  }
+  document.getElementById('dlgImpRondas').close();
+  render(); toast(`${n} ronda${n===1?'':'s'} importada${n===1?'':'s'}`);
+}
+function leerArchivoRondas(f){
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+    const d=JSON.parse(rd.result);
+    if(d.tipo!=='golf-nqn-rondas'||!Array.isArray(d.rondas)) throw 0;
+    if(!estado.jugadores.length){ toast('Cargá jugadores primero'); return; }
+    abrirImportRondas(d);
+  }catch{ toast('Ese archivo no es un archivo de rondas'); } };
+  rd.readAsText(f);
+}
+
 function exportar(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(estado,null,2)],{type:'application/json'}));
@@ -1581,6 +1824,10 @@ document.getElementById('btnCanchas').onclick=abrirCanchas;
 document.getElementById('btnAgregarJugador').onclick=agregarJugador;
 document.getElementById('btnExportar').onclick=exportar;
 document.getElementById('btnImportar').onclick=()=>document.getElementById('archivoImportar').click();
+document.getElementById('btnImportarRondas').onclick=()=>document.getElementById('archivoRondas').click();
+document.getElementById('archivoRondas').onchange=e=>{ if(e.target.files[0]) leerArchivoRondas(e.target.files[0]); e.target.value=''; };
+document.getElementById('impJugador').onchange=previsualizar;
+document.getElementById('btnHacerImport').onclick=hacerImport;
 document.getElementById('archivoImportar').onchange=e=>{ if(e.target.files[0]) importar(e.target.files[0]); e.target.value=''; };
 document.getElementById('rDesde').onchange=renderRondas;
 document.getElementById('rHasta').onchange=renderRondas;
@@ -1588,7 +1835,6 @@ document.getElementById('rCant').onchange=renderRondas;
 document.getElementById('btnLimpiarFiltro').onclick=()=>{
   document.getElementById('rDesde').value=''; document.getElementById('rHasta').value='';
   document.getElementById('rCant').value='0'; renderRondas(); };
-document.getElementById('temporada').onchange=e=>{ temporadaSel=e.target.value; renderPosiciones(); };
 document.getElementById('cSel').onchange=renderCancha;
 document.getElementById('statJugador').onchange=renderStats;
 document.getElementById('statCancha').onchange=renderStats;
@@ -1636,7 +1882,8 @@ function abrirCondiciones(id){
   kViento=r.viento||'';
   document.querySelectorAll('#kViento button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===kViento)));
   document.getElementById('kNota').value=r.nota||'';
-  document.getElementById('kCuenta').checked = r.cuenta!==false;
+  document.getElementById('kTorneo').innerHTML='<option value="">Sin torneo</option>'+
+    estado.torneos.map(t=>`<option value="${t.id}"${r.torneoId===t.id?' selected':''}>${esc(t.nombre)}</option>`).join('');
   const det=r.scores.some(s=>s.hoyos);
   document.getElementById('kAviso').textContent = det
     ? 'Cambiar la cancha o el tramo recalcula el par de cada hoyo contra la tarjeta nueva. Los golpes anotados no se tocan.'
@@ -1660,8 +1907,7 @@ function guardarCondiciones(){
   r.tramo=nuevoTramo;
   r.viento=kViento;
   r.nota=document.getElementById('kNota').value.trim();
-  r.cuenta=document.getElementById('kCuenta').checked;
-  temporadaSel=r.fecha.slice(0,4);
+  r.torneoId=document.getElementById('kTorneo').value;
   document.getElementById('dlgCondiciones').close();
   guardarRonda(r); render(); toast('Condiciones actualizadas');
 }
