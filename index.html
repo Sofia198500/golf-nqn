@@ -247,7 +247,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v17</b> · 14/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v18.1</b> · 14/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnCervezas">Cervezas</button>
@@ -562,6 +562,7 @@
     <div class="fila" style="grid-template-columns:1fr auto; align-items:end">
       <div><label for="cSel">Ver cancha</label><select id="cSel"></select></div>
       <button id="btnTarjeta">Traer tarjeta</button>
+      <button id="btnEstimar">Estimar rating</button>
     </div>
     <p class="hint" id="cTarjetaAviso" style="margin-bottom:12px"></p>
     <div id="cDetalle"></div>
@@ -1293,7 +1294,7 @@ const TABLA_WHS=[               // [cantidad de vueltas, cuántas usar, ajuste]
 
 function ratingTee(c,tee){
   const r=(c.rating||{})[tee]||{};
-  return { cr:Number(r.cr)||null, slope:Number(r.slope)||null };
+  return { cr:Number(r.cr)||null, slope:Number(r.slope)||null, est:!!r.est };
 }
 
 /* Score ajustado: cada hoyo se topea en doble bogey neto, o sea
@@ -1325,7 +1326,7 @@ function diferenciales(jid, hcpRef){
     const par=c.pars.reduce((a,b)=>a+b,0);
     const hcpCancha=Math.round(hcpRef*(slope/113)+(cr-par));
     const ags=scoreAjustado(r,s,hcpCancha);
-    out.push({ fecha:r.fecha, cancha:canchaCorta(c), tee:s.tee, ags, topeado:!!s.hoyos,
+    out.push({ fecha:r.fecha, cancha:canchaCorta(c), tee:s.tee, ags, topeado:!!s.hoyos, estimado:!!ratingTee(c,s.tee||'blanco').est,
       dif: Math.round((113/slope)*(ags-cr)*10)/10 });
   });
   return out.sort((a,b)=>b.fecha.localeCompare(a.fecha));
@@ -1401,7 +1402,7 @@ function renderHandicap(jid){
     const falta = r.n<3
       ? `Hacen falta ${r.faltan} vuelta${r.faltan===1?'':'s'} más de 18 hoyos en canchas con rating cargado.`
       : 'Faltan datos.';
-    el.innerHTML=`<div class="diag"><h3>Handicap Index</h3>
+    el.innerHTML=`<div class="diag"><h3>Handicap estimado</h3>
       <div class="sub">Todavía no se puede calcular</div>
       <div class="foco" style="border:0; padding-top:0">${falta}
       ${sinRating.length?`<br><br>Cargá el <b>course rating</b> y el <b>slope</b> de cada tee en <b>Canchas</b>. Están en la tarjeta del club. Sin esos dos números la fórmula oficial no se puede aplicar.`:''}</div></div>`;
@@ -1409,16 +1410,24 @@ function renderHandicap(jid){
   }
   const u=r.difs.slice(0,8);
   el.innerHTML=`<div class="diag">
-    <h3>Handicap Index</h3>
-    <div class="sub">Estimado con la fórmula del World Handicap System</div>
-    <div style="display:flex; align-items:baseline; gap:12px; margin:4px 0 10px">
+    <h3>Handicap estimado</h3>
+    <div class="sub">Calculado con la fórmula del World Handicap System · solo informativo</div>
+    <div style="display:flex; align-items:baseline; gap:12px; margin:4px 0 8px">
       <span style="font-size:44px; font-weight:800; line-height:1; font-variation-settings:'wdth' 88">${r.index.toFixed(1)}</span>
       <span class="hint">de ${r.n} vuelta${r.n===1?'':'s'} · usa ${r.usar===1?'la mejor':'las '+r.usar+' mejores'}${r.ajuste?` · ajuste ${r.ajuste}`:''}</span>
     </div>
+    <table class="mini" style="margin-bottom:10px"><tbody>
+      <tr><td>Handicap cargado (el que se juega)</td><td style="font-weight:700">${(jugador(jid).hcp??0)}</td></tr>
+      <tr><td>Este cálculo</td><td style="font-weight:700">${r.index.toFixed(1)}</td></tr>
+      <tr><td>Diferencia</td><td style="font-weight:700">${fmtPar(Math.round((r.index-(jugador(jid).hcp||0))*10)/10)}</td></tr>
+    </tbody></table>
+    <p class="hint" style="margin-bottom:10px">Este número <b>no se usa</b> para los netos ni para la tabla: para eso manda el
+    handicap cargado en Jugadores, donde va el oficial de la federación. Esto es para seguir tu propia evolución.</p>
     <table class="mini"><thead><tr><th>Fecha</th><th>Cancha</th><th>Ajust.</th><th>Diferencial</th></tr></thead><tbody>
       ${u.map(x=>`<tr><td>${fechaCorta(x.fecha)}</td><td>${esc(x.cancha)}</td><td>${x.ags}${x.topeado?'':'<span class="marca">sin tope</span>'}</td>
         <td${r.mejores.includes(x.dif)?' style="font-weight:700;color:var(--fairway)"':''}>${x.dif.toFixed(1)}</td></tr>`).join('')}
     </tbody></table>
+    ${r.difs.some(x=>x.estimado)?`<div class="foco" style="color:var(--bandera)">Atención: algunas vueltas usan un <b>rating estimado</b> de las yardas, no el oficial. La estimación no cuenta los obstáculos de la cancha, que siempre suben el rating, así que tu handicap real es probablemente <b>1 a 3 golpes menor</b> que este número. Pedí el rating oficial en la secretaría del club y cargalo en Canchas.</div>`:''}
     <div class="foco">No es un handicap oficial: no incluye el ajuste diario por condiciones (PCC), que lo calcula la federación. En las vueltas cargadas solo con el total no se puede aplicar el tope de doble bogey neto por hoyo, y se usa el score tal cual. Solo se usan vueltas de 18 hoyos en canchas con rating y slope cargados.</div>
   </div>`;
 }
@@ -1941,6 +1950,40 @@ function abrirCanchas(){
 /* Los datos de las canchas viajan guardados en la planilla, así que una
    corrección hecha acá en el código no llega sola: hay que pedirla. Esto
    sobrescribe par, handicap y yardas de una cancha con los de la tarjeta. */
+/* Estimación del rating a partir de las yardas (aproximación de la USGA):
+     rating scratch = yardas/220 + 40.9
+     rating bogey   = yardas/160 + 50.7
+     slope          = (bogey − scratch) × 5.381
+   No incluye los obstáculos (agua, bunkers, árboles, viento), que el equipo
+   de rating suma aparte y siempre suben el rating. Como un rating más alto
+   baja el handicap, la estimación tira hacia arriba: tu handicap real va a
+   ser algo MENOR que el estimado. */
+function estimarRating(yardas){
+  if(!yardas) return null;
+  const cr=Math.round((yardas/220+40.9)*10)/10;
+  const br=yardas/160+50.7;
+  const slope=Math.max(55,Math.min(155,Math.round((br-cr)*5.381)));
+  return {cr, slope, est:true};
+}
+async function estimarRatings(){
+  const cid=document.getElementById('cSel').value, c=cancha(cid);
+  const hechos=[];
+  c.rating=c.rating||{};
+  TEES.forEach(t=>{
+    const y=(c.tees[t]||[]).reduce((a,b)=>a+(b||0),0);
+    if(!y) return;
+    const r=c.rating[t]||{};
+    if(r.cr&&r.slope&&!r.est) return;        // ya tiene el oficial cargado
+    const e=estimarRating(y);
+    c.rating[t]=e; hechos.push(`${t} ${e.cr}/${e.slope}`);
+  });
+  if(!hechos.length){ toast('No hay salidas con yardas para estimar'); return; }
+  if(!confirm(`Estimar el rating a partir de las yardas?\n\n${hechos.join('\n')}\n\nEs una aproximación: cuando consigas el rating oficial del club, cargalo a mano y reemplaza al estimado.`)) return;
+  await guardarConfig(); renderCancha(); render();
+  toast('Rating estimado en '+canchaCorta(c));
+}
+document.getElementById('btnEstimar').onclick=estimarRatings;
+
 function baseDe(cid){ return CANCHAS_BASE.find(c=>c.id===cid)||null; }
 async function traerTarjeta(){
   const cid=document.getElementById('cSel').value;
@@ -1980,9 +2023,9 @@ function renderCancha(){
   document.getElementById('cDetalle').innerHTML=`
     <p class="hint" style="margin-bottom:8px">${esc(c.ciudad)} · par ${c.pars.reduce((a,b)=>a+b,0)} · ${TEES.filter(t=>tot(t)).map(t=>t+' '+tot(t)).join(' · ')||'sin yardas cargadas'} yds</p>
     <label>Rating y slope por tee</label>
-    <p class="hint" style="margin-bottom:8px">Están en la tarjeta del club. Hacen falta para calcular el handicap.</p>
+    <p class="hint" style="margin-bottom:8px">Están en la tarjeta del club o en la secretaría. Hacen falta para el handicap. Si no los tenés, tocá <b>Estimar rating</b>: sale de las yardas y es aproximado.</p>
     <table class="mini" style="margin-bottom:14px"><thead><tr><th>Tee</th><th>Course rating</th><th>Slope</th></tr></thead><tbody>
-    ${TEES.map(t=>`<tr><td>${t[0].toUpperCase()+t.slice(1)}</td>
+    ${TEES.map(t=>`<tr><td>${t[0].toUpperCase()+t.slice(1)}${rt(t).est?'<span class="marca">est</span>':''}</td>
       <td><input type="number" step="0.1" inputmode="decimal" value="${rt(t).cr??''}" data-r="cr" data-t="${t}" style="width:76px;padding:4px;text-align:center" placeholder="71.2"></td>
       <td><input type="number" inputmode="numeric" value="${rt(t).slope??''}" data-r="slope" data-t="${t}" style="width:76px;padding:4px;text-align:center" placeholder="128"></td></tr>`).join('')}
     </tbody></table>
@@ -1998,6 +2041,7 @@ document.getElementById('cDetalle').addEventListener('change',e=>{
   if(el.dataset.r){
     c.rating=c.rating||{}; c.rating[el.dataset.t]=c.rating[el.dataset.t]||{};
     c.rating[el.dataset.t][el.dataset.r]=Number(el.value)||null;
+    delete c.rating[el.dataset.t].est;   // cargado a mano: ya no es estimación
     guardar(); render(); return;
   }
   if(el.dataset.c==='pars') c.pars[i]=v||4;
