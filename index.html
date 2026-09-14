@@ -247,7 +247,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v18.2</b> · 14/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v20</b> · 14/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnCervezas">Cervezas</button>
@@ -526,6 +526,7 @@
     <div style="display:flex; gap:8px; margin-bottom:12px">
       <button class="btn-q" id="btnVerGuardada">Ver la guardada</button>
       <button class="btn-q" id="btnBorrarGuardada">Borrar la guardada</button>
+      <button class="btn-q" id="btnDiagnosticar">Probar conexión</button>
     </div>
     <div class="acciones"><button data-cerrar="dlgConexion">Cancelar</button><button class="btn-p" id="btnGuardarConexion">Conectar</button></div>
   </div>
@@ -676,20 +677,102 @@ async function cargar(){
   await refrescar(true);
 }
 
+/* ===== Sincronización incremental =====
+   La app guarda las rondas en este dispositivo y al abrir solo pregunta
+   "¿qué cambió?". Pide un índice liviano (id + marca) y baja el detalle
+   únicamente de lo que le falta. Con 500 rondas, abrir la app es un pedido. */
+const K_CACHE='golf-nqn:cache';
+function leerCache(){
+  try{ const t=localStorage.getItem(K_CACHE); return t?JSON.parse(t):{}; }catch(e){ return {}; }
+}
+function grabarCache(c){
+  try{ localStorage.setItem(K_CACHE, JSON.stringify(c)); return true; }
+  catch(e){ return false; }   // sin espacio: sigue andando, solo pierde el ahorro
+}
+let cacheRondas=leerCache();
+
 async function refrescar(primeraVez){
   if(!apiURL()){ modoGuardado='local'; pintarEstado(); return; }
-  document.getElementById('estado').textContent='Leyendo la planilla…';
+  const est=document.getElementById('estado');
   try{
-    const d=await jsonp({t:Date.now()}, 60000);
-    if(d.config){ if(d.config.jugadores) estado.jugadores=d.config.jugadores; if(d.config.canchas) estado.canchas=d.config.canchas; if(d.config.torneos) estado.torneos=d.config.torneos; if(d.config.pagos) estado.pagos=d.config.pagos; }
-    estado.rondas=d.rondas||[];
-    modoGuardado='compartido';
+    est.textContent='Consultando la planilla…';
+    const ind=await jsonp({accion:'indice', t:Date.now()}, 45000);
+
+    // Script viejo: no manda índice. Se cae al modo anterior, por páginas.
+    if(!ind.idx){ await refrescarCompleto(ind); if(!primeraVez) render(); return; }
+
+    if(ind.config){ const c=ind.config;
+      if(c.jugadores) estado.jugadores=c.jugadores; if(c.canchas) estado.canchas=c.canchas;
+      if(c.torneos) estado.torneos=c.torneos; if(c.pagos) estado.pagos=c.pagos; }
+
+    const vivos=new Set(ind.idx.map(([id])=>id));
+    Object.keys(cacheRondas).forEach(id=>{ if(!vivos.has(id)) delete cacheRondas[id]; });
+
+    const faltan=ind.idx.filter(([id,mod])=>!cacheRondas[id]||cacheRondas[id].mod!==mod).map(([id])=>id);
+    const TANDA=20;
+    for(let i=0;i<faltan.length;i+=TANDA){
+      const ids=faltan.slice(i,i+TANDA);
+      est.textContent=`Bajando rondas nuevas… ${Math.min(i+TANDA,faltan.length)} de ${faltan.length}`;
+      const d=await jsonp({accion:'detalle', ids:ids.join(','), t:Date.now()}, 45000);
+      const mod=new Map(ind.idx);
+      (d.rondas||[]).forEach(r=>{ cacheRondas[r.id]={mod:mod.get(r.id), r}; });
+    }
+    if(faltan.length) grabarCache(cacheRondas);
+
+    estado.rondas=ind.idx.map(([id])=>cacheRondas[id]&&cacheRondas[id].r).filter(Boolean);
+    modoGuardado='compartido'; ultimoBajado=faltan.length;
     normalizar();
   }catch(e){
     modoGuardado='error'; errorConexion=e.message;
   }
   pintarEstado();
   if(!primeraVez) render();
+}
+let ultimoBajado=0;
+
+// Camino de respaldo para scripts anteriores a la v4.
+async function refrescarCompleto(primera){
+  let pagina=0, todas=[], cfg=primera&&primera.config||null, seguir=true, v=0;
+  if(primera&&primera.rondas){ todas=primera.rondas.slice(); seguir=!!primera.hay_mas; pagina=1; }
+  while(seguir && v<40){
+    const d=await jsonp({accion:'leer', pagina, tam:20, t:Date.now()}, 45000);
+    if(pagina===0&&d.config) cfg=d.config;
+    todas=todas.concat(d.rondas||[]);
+    seguir=!!d.hay_mas&&(d.rondas||[]).length>0; pagina++; v++;
+  }
+  if(cfg){ if(cfg.jugadores) estado.jugadores=cfg.jugadores; if(cfg.canchas) estado.canchas=cfg.canchas;
+           if(cfg.torneos) estado.torneos=cfg.torneos; if(cfg.pagos) estado.pagos=cfg.pagos; }
+  estado.rondas=todas; modoGuardado='compartido'; normalizar(); pintarEstado();
+}
+
+// Pedido mínimo, para saber si el script responde sin traer datos.
+async function diagnosticar(){
+  try{
+    const d=await jsonp({accion:'ping', t:Date.now()}, 25000);
+    return `Responde. Planilla "${d.planilla||'?'}", ${d.rondas??'?'} rondas guardadas, script v${d.version||'3 o anterior'}.`+
+      (d.version>=4?'':' Conviene actualizar el script: esta versión baja todas las rondas en cada apertura.');
+  }catch(e){ return 'No responde: '+e.message; }
+}
+
+/* Al guardar se sacan los campos vacíos: una ronda pasa de ~890 a ~206 bytes.
+   Al leer, los campos ausentes se comportan igual que los nulos. */
+function compactar(r){
+  const c=JSON.parse(JSON.stringify(r));
+  (c.scores||[]).forEach(s=>{
+    if(!s.hoyos) return;
+    s.hoyos=s.hoyos.map(h=>{
+      const o={};
+      Object.keys(h).forEach(k=>{
+        const v=h[k];
+        if(v===null||v===undefined||v===''||(Array.isArray(v)&&!v.length)) return;
+        o[k]=v;
+      });
+      return o;
+    });
+  });
+  ['viento','nota','torneoId'].forEach(k=>{ if(!c[k]) delete c[k]; });
+  if(c.cervezas&&!Object.keys(c.cervezas).length) delete c.cervezas;
+  return c;
 }
 
 function normalizar(){
@@ -728,13 +811,14 @@ async function guardarConfig(){
 }
 async function guardarRonda(r){
   if(!apiURL()){ pintarEstado(); return; }
-  try{ await api({accion:'guardarRonda', ronda:r}); }
+  try{ const d=await api({accion:'guardarRonda', ronda:compactar(r)});
+    (d&&d.mods||[]).forEach(([id,m])=>{ cacheRondas[id]={mod:m, r}; }); grabarCache(cacheRondas); }
   catch(e){ toast('No se pudo guardar la ronda: '+e.message); }
   pintarEstado();
 }
 async function eliminarRonda(id){
   if(!apiURL()) return;
-  try{ await api({accion:'borrarRonda', id}); }catch(e){ toast('No se pudo borrar: '+e.message); }
+  try{ await api({accion:'borrarRonda', id}); delete cacheRondas[id]; grabarCache(cacheRondas); }catch(e){ toast('No se pudo borrar: '+e.message); }
 }
 const guardar=guardarConfig;
 
@@ -742,7 +826,8 @@ function pintarEstado(){
   const el=document.getElementById('estado');
   if(modoGuardado==='compartido'){
     el.className='estado ok';
-    el.textContent=`Conectado · ${estado.rondas.length} ronda${estado.rondas.length===1?'':'s'} en el grupo`;
+    el.textContent=`Conectado · ${estado.rondas.length} ronda${estado.rondas.length===1?'':'s'} en el grupo`+
+      (ultimoBajado?` · ${ultimoBajado} nueva${ultimoBajado===1?'':'s'}`:'');
   } else if(modoGuardado==='error'){
     el.className='estado local'; el.textContent='Sin conexión con la planilla: '+(errorConexion||'');
   } else {el.className='estado local'; el.textContent='Sin conectar. Tocá Conectar para enlazar la planilla.';}
@@ -1876,7 +1961,7 @@ async function hacerAsignar(){
       const r=estado.rondas.find(x=>x.id===id); if(!r) continue;
       if(r.torneoId===dest){ n++; continue; }
       r.torneoId=dest;
-      await api({accion:'guardarRonda', ronda:r});
+      await api({accion:'guardarRonda', ronda:compactar(r)});
       n++;
       av.innerHTML=`<p class="hint" style="margin-bottom:10px">Guardando ${n} de ${ids.length}…</p>`;
     }
@@ -2144,16 +2229,26 @@ async function hacerImport(){
   avance(0);
   let n=0, fallo=null;
   try{
+    // De a tandas: 50 rondas eran 50 pedidos y cualquiera podía cortar todo.
+    const pendientes=[];
     for(const x of p.nuevas){
-      const r={id:uid(), fecha:x.fecha, canchaId:x.__cid||x.canchaId||p.cid, tramo:x.tramo||'18', viento:'', nota:x.nota||'',
-        torneoId:'', scores:[{jugadorId:p.jid, tee:x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:x.hoyos}]};
-      await api({accion:'guardarRonda', ronda:r});
-      estado.rondas.push(r); n++; avance(n);
+      pendientes.push({id:uid(), fecha:x.fecha, canchaId:x.__cid||x.canchaId||p.cid, tramo:x.tramo||'18',
+        viento:'', nota:x.nota||'', torneoId:'',
+        scores:[{jugadorId:p.jid, tee:x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:x.hoyos}]});
     }
+    const nuevasRefs=pendientes.slice();
     for(const o of p.sumadas){
       o.ex.scores.push({jugadorId:p.jid, tee:o.x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:o.x.hoyos});
-      await api({accion:'guardarRonda', ronda:o.ex});
-      n++; avance(n);
+      pendientes.push(o.ex);
+    }
+    const TANDA=5;
+    for(let i=0;i<pendientes.length;i+=TANDA){
+      const tanda=pendientes.slice(i,i+TANDA);
+      const d=await api({accion:'guardarVarias', rondas:tanda.map(compactar)});
+      (d&&d.mods||[]).forEach(([id,m])=>{ const r=tanda.find(x=>x.id===id); if(r) cacheRondas[id]={mod:m, r}; });
+      grabarCache(cacheRondas);
+      tanda.forEach(r=>{ if(nuevasRefs.includes(r)) estado.rondas.push(r); });
+      n+=tanda.length; avance(Math.min(n,total));
     }
   }catch(e){ fallo=e.message; }
   // Pase lo que pase, los botones vuelven a funcionar: el cartel nunca
@@ -2412,6 +2507,15 @@ document.getElementById('btnConectar').onclick=()=>abrirConexion(false);
 document.getElementById('btnGuardarConexion').onclick=conectar;
 document.getElementById('btnVerGuardada').onclick=verGuardada;
 document.getElementById('btnBorrarGuardada').onclick=borrarGuardada;
+document.getElementById('btnDiagnosticar').onclick=async()=>{
+  const u=document.getElementById('apiURL').value.trim();
+  const v=revisar(u); if(!v.ok){ diagnostico('La dirección '+v.mensaje, true); return; }
+  const antes=apiURL(); setApiURL(u);
+  diagnostico('Probando…');
+  const msg=await diagnosticar();
+  setApiURL(antes||u);
+  diagnostico(msg, msg.startsWith('No responde'));
+};
 document.getElementById('btnLinkGrupo').onclick=copiarLinkGrupo;
 // Recarga sola al volver a la pestaña y cada 45 segundos, para que lo que
 // carga uno aparezca en el celular del otro sin tener que hacer nada.
