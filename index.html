@@ -247,7 +247,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v18.1</b> · 14/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v18.2</b> · 14/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnCervezas">Cervezas</button>
@@ -1399,13 +1399,31 @@ function renderHandicap(jid){
   const r=handicapIndex(jid);
   const sinRating=estado.canchas.filter(c=>!Object.values(c.rating||{}).some(x=>x&&x.cr&&x.slope));
   if(r.index==null){
-    const falta = r.n<3
-      ? `Hacen falta ${r.faltan} vuelta${r.faltan===1?'':'s'} más de 18 hoyos en canchas con rating cargado.`
-      : 'Faltan datos.';
+    // Explicar POR QUÉ no alcanza, no solo que no alcanza.
+    const mias=estado.rondas.filter(x=>x.scores.some(sc=>sc.jugadorId===jid));
+    const de18=mias.filter(x=>nHoyos(x)===18);
+    const sinRt=de18.filter(x=>{
+      const sc=x.scores.find(y=>y.jugadorId===jid);
+      const rt=ratingTee(cancha(x.canchaId), (sc&&sc.tee)||'blanco');
+      return !rt.cr || !rt.slope;
+    });
+    const validas=de18.length-sinRt.length;
+    const canchasSinRt=[...new Set(sinRt.map(x=>canchaCorta(cancha(x.canchaId))))];
     el.innerHTML=`<div class="diag"><h3>Handicap estimado</h3>
-      <div class="sub">Todavía no se puede calcular</div>
-      <div class="foco" style="border:0; padding-top:0">${falta}
-      ${sinRating.length?`<br><br>Cargá el <b>course rating</b> y el <b>slope</b> de cada tee en <b>Canchas</b>. Están en la tarjeta del club. Sin esos dos números la fórmula oficial no se puede aplicar.`:''}</div></div>`;
+      <div class="sub">Necesita 3 vueltas de 18 hoyos como mínimo. Tenés ${validas}.</div>
+      <table class="mini" style="margin-bottom:10px"><tbody>
+        <tr><td>Tus vueltas cargadas</td><td style="font-weight:700">${mias.length}</td></tr>
+        <tr><td>De esas, de 18 hoyos</td><td style="font-weight:700">${de18.length}</td></tr>
+        <tr><td>De esas, con rating cargado</td><td style="font-weight:700">${validas}</td></tr>
+      </tbody></table>
+      <div class="foco">
+      ${de18.length===0
+        ? 'Todas tus vueltas son de 9 hoyos. La fórmula del World Handicap System solo usa vueltas de 18, así que hay que jugar (o cargar) al menos 3 completas.'
+        : sinRt.length
+        ? `Tenés ${de18.length} vuelta${de18.length===1?'':'s'} de 18, pero ${sinRt.length} queda${sinRt.length===1?'':'n'} afuera por falta de rating en: <b>${canchasSinRt.join(', ')}</b>.
+           Andá a <b>Canchas</b>, elegí esa cancha y tocá <b>Estimar rating</b>, o cargá el oficial del club.`
+        : `Te faltan ${3-validas} vuelta${3-validas===1?'':'s'} de 18 hoyos.`}
+      </div></div>`;
     return;
   }
   const u=r.difs.slice(0,8);
