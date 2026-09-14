@@ -245,9 +245,10 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v13</b> · 07/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v16</b> · 14/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
+      <button class="btn-x" id="btnCervezas">Cervezas</button>
       <button class="btn-x" id="btnTorneos">Torneos</button>
       <button class="btn-x" id="btnJugadores">Jugadores</button>
       <button class="btn-x" id="btnCanchas">Canchas</button>
@@ -301,6 +302,7 @@
       <option value="papa">Papas por ronda</option>
       <option value="pen">Penalidades por ronda</option>
     </select></div></div>
+    <div id="palosCaja"></div>
     <div id="handicapCaja"></div>
     <div id="tendencia">
       <div class="kpis">
@@ -396,7 +398,7 @@
 <dialog id="dlgJuego">
   <div class="dlg">
     <div class="j-top"><span id="jTitulo"></span>
-      <span style="display:flex; gap:2px"><button class="btn-x" id="btnOjo" aria-pressed="false">Ocultar score</button><button class="btn-x" id="btnSalirJuego">Salir</button></span></div>
+      <span style="display:flex; gap:2px"><button class="btn-x" id="btnPalos" aria-pressed="false">Palos</button><button class="btn-x" id="btnOjo" aria-pressed="false">Ocultar score</button><button class="btn-x" id="btnSalirJuego">Salir</button></span></div>
     <div class="j-hoyo">
       <button id="jAnt" aria-label="Hoyo anterior">←</button>
       <div class="c"><div class="n" id="jNum">1</div><div class="e">Hoyo</div></div>
@@ -432,6 +434,8 @@
     <div class="fila"><div><label for="kTorneo">Torneo</label><select id="kTorneo"></select></div></div>
     <label>Jugadores de esta ronda</label>
     <ul class="lista" id="kJugadores"></ul>
+    <label>Cervezas que debe cada uno por esta ronda</label>
+    <div class="contadores" id="kCervezas" style="grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); margin-bottom:14px"></div>
     <p class="hint" style="margin-bottom:12px">Dejalo en “Sin torneo” para las vueltas que no compiten, como las que jugás solo. Siguen contando para tus estadísticas.</p>
     <p class="hint" id="kAviso" style="margin-bottom:12px"></p>
     <div class="acciones"><button data-cerrar="dlgCondiciones">Cancelar</button><button class="btn-p" id="btnGuardarCondiciones">Guardar</button></div>
@@ -453,6 +457,21 @@
       <option value="promedio">Promedio de vs par neto (menor gana)</option>
       <option value="victorias">Cantidad de rondas ganadas</option>
     </select></div></div>
+  </div>
+</dialog>
+
+<dialog id="dlgCervezas">
+  <div class="dlg">
+    <div class="dlg-cab"><h2>Cervezas</h2><button class="btn-x" data-cerrar="dlgCervezas">Cerrar</button></div>
+    <p class="hint" style="margin-bottom:12px">Las cervezas se cargan por ronda, en <b>Condiciones</b>. Acá se ve el acumulado y se registran las pagadas.</p>
+    <div id="cvTabla"></div>
+    <label>Registrar cervezas pagadas</label>
+    <div class="fila" style="grid-template-columns:1.4fr .6fr auto; align-items:end">
+      <div><select id="cvJugador"></select></div>
+      <div><input id="cvCant" type="number" inputmode="numeric" min="1" value="1" style="text-align:center"></div>
+      <button class="btn-p" id="btnPagar">Pagó</button>
+    </div>
+    <div id="cvHistorial"></div>
   </div>
 </dialog>
 
@@ -529,7 +548,7 @@
     <div class="fila" style="grid-template-columns:2fr 1fr 1fr auto; align-items:end">
       <div><label for="jApodo">Apodo</label><input id="jApodo" placeholder="Caballo"></div>
       <div><label for="jHcp">Hcp</label><input id="jHcp" type="number" inputmode="numeric" placeholder="0"></div>
-      <div><label for="jTee">Tee</label><select id="jTee"><option value="azul">Azul</option><option value="blanco" selected>Blanco</option><option value="rojo">Rojo</option></select></div>
+      <div><label for="jTee">Tee</label><select id="jTee"><option value="negro">Negro</option><option value="azul">Azul</option><option value="amarillo">Amarillo</option><option value="blanco" selected>Blanco</option><option value="rojo">Rojo</option></select></div>
       <button class="btn-p" id="btnAgregarJugador">Agregar</button>
     </div>
   </div>
@@ -555,19 +574,28 @@ const CANCHAS_BASE = [
     pars:[5,3,4,4,4,5,4,3,4, 5,3,4,4,3,4,3,4,4],
     si:  [17,7,15,11,5,1,9,13,3, 2,12,10,8,14,18,16,4,6],
     tees:{ azul:[464,179,374,337,364,443,369,167,376, 458,148,317,358,130,365,163,361,377], blanco:[], rojo:[] } },
-  { id:'arroyito', corto:'Arroyito', nombre:'Arroyito Country Club', ciudad:'Neuquén',
-    pars:[5,3,5,4,4,4,4,4,3, 5,4,4,4,4,3,3,5,4],
-    si:  [3,17,11,13,9,7,5,1,15, 6,4,14,8,2,16,18,12,10],
-    tees:{ azul:[507,134,468,333,262,328,351,379,184, 475,378,341,342,326,135,166,468,320], blanco:[], rojo:[] } },
+  { id:'arroyito', corto:'Arroyito', nombre:'Arroyito Country Club', ciudad:'Neuquen',
+    // Tarjeta del club. Las tres salidas verifican exacto con los totales impresos.
+    pars:[5, 3, 5, 4, 4, 4, 4, 4, 3, 5, 4, 4, 4, 4, 3, 3, 5, 4],
+    si:  [3, 17, 11, 13, 9, 7, 5, 1, 15, 6, 2, 14, 8, 4, 18, 16, 12, 10],
+    tees:{ azul:[555, 147, 512, 364, 287, 359, 384, 415, 201, 520, 413, 373, 374, 356, 148, 182, 512, 350],
+           blanco:[538, 147, 474, 351, 255, 359, 362, 364, 171, 479, 394, 361, 363, 340, 148, 182, 473, 350],
+           rojo:[439, 130, 433, 294, 233, 327, 348, 305, 148, 398, 338, 333, 354, 306, 139, 152, 410, 304] } },
   { id:'canales', corto:'Los Canales', nombre:'Los Canales de Plottier', ciudad:'Plottier',
-    pars:[4,5,4,4,3,4,5,3,4, 4,4,3,5,4,3,4,5,4],
-    si:  [13,3,11,9,17,15,1,7,5, 14,18,16,2,12,10,6,4,8],
-    tees:{ azul:[361,529,374,401,175,348,567,209,402, 368,280,173,556,377,207,408,516,380], blanco:[], rojo:[] } },
+    // Tarjeta del club. Par e indice de handicap verificados contra los totales impresos.
+    pars:[4, 5, 4, 4, 3, 4, 5, 3, 4, 4, 4, 3, 5, 4, 3, 4, 5, 4],
+    si:  [13, 3, 11, 9, 17, 15, 1, 7, 5, 14, 18, 16, 2, 12, 10, 6, 4, 8],
+    tees:{ negro:[395, 578, 409, 438, 191, 381, 620, 229, 440, 402, 306, 189, 608, 412, 226, 446, 564, 416],
+           azul:[367, 562, 378, 403, 160, 345, 588, 199, 412, 370, 274, 163, 584, 384, 191, 420, 524, 384],
+           amarillo:[360, 555, 370, 398, 153, 338, 582, 186, 407, 365, 269, 158, 575, 377, 185, 414, 518, 379],
+           blanco:[336, 526, 362, 357, 119, 305, 536, 161, 380, 329, 227, 127, 550, 348, 148, 382, 493, 350],
+           rojo:[292, 493, 280, 320, 103, 273, 492, 136, 350, 303, 194, 102, 517, 315, 136, 347, 449, 323] } },
   { id:'roca', corto:'Gral. Roca', nombre:'Golf Club General Roca', ciudad:'General Roca',
     pars:[4,5,3,4,3,5,5,3,4, 4,4,4,3,5,5,3,4,4],
     si:  [1,13,15,7,9,5,3,11,17, 10,2,6,18,14,12,16,8,4],
     tees:{ azul:[396,487,168,327,174,422,424,128,347, 371,371,286,146,490,417,155,375,347], blanco:[], rojo:[] } },
 ];
+const TEES=['negro','azul','amarillo','blanco','rojo'];
 const SALIDAS=['Fairway','Larga','Corta','Derecha','Izquierda'];
 // Papa: golpe que sale mal y casi no avanza, el golpe regalado.
 const CAMPOS=[['putts','Putts'],['chip','Chips'],['sand','Sand'],['papa','Papas'],['pen','Penal.']];
@@ -577,7 +605,7 @@ const K_CFG='golf-nqn:config';      // jugadores y canchas
 const P_RONDA='golf-nqn:ronda:';    // una clave por ronda
 const uid=()=>Math.random().toString(36).slice(2,9);
 const hoy=()=>new Date().toISOString().slice(0,10);
-let estado={torneos:[], jugadores:[{id:uid(),nombre:'Cristian',apellido:'',apodo:'',hcp:0,tee:'blanco'}],canchas:CANCHAS_BASE,rondas:[]};
+let estado={torneos:[], pagos:[], jugadores:[{id:uid(),nombre:'Cristian',apellido:'',apodo:'',hcp:0,tee:'blanco'}],canchas:CANCHAS_BASE,rondas:[]};
 let modoGuardado='local', errorConexion='', torneoSel=null, vista='inicio';
 let juego=null, editandoId=null;
 
@@ -633,7 +661,7 @@ async function refrescar(primeraVez){
   if(!apiURL()){ modoGuardado='local'; pintarEstado(); return; }
   try{
     const d=await jsonp({t:Date.now()});
-    if(d.config){ if(d.config.jugadores) estado.jugadores=d.config.jugadores; if(d.config.canchas) estado.canchas=d.config.canchas; if(d.config.torneos) estado.torneos=d.config.torneos; }
+    if(d.config){ if(d.config.jugadores) estado.jugadores=d.config.jugadores; if(d.config.canchas) estado.canchas=d.config.canchas; if(d.config.torneos) estado.torneos=d.config.torneos; if(d.config.pagos) estado.pagos=d.config.pagos; }
     estado.rondas=d.rondas||[];
     modoGuardado='compartido';
     normalizar();
@@ -647,7 +675,7 @@ async function refrescar(primeraVez){
 function normalizar(){
   estado.canchas=estado.canchas||[];
   CANCHAS_BASE.forEach(cb=>{ if(!estado.canchas.some(c=>c.id===cb.id)) estado.canchas.push(cb); });
-  estado.canchas.forEach(c=>{ if(!c.pars){c.pars=Array(18).fill(4); c.si=Array.from({length:18},(_,i)=>i+1); c.tees={azul:[],blanco:[],rojo:[]};} });
+  estado.canchas.forEach(c=>{ if(!c.pars){c.pars=Array(18).fill(4); c.si=Array.from({length:18},(_,i)=>i+1); c.tees=c.tees||{};} });
   (estado.jugadores||[]).forEach(j=>{
     if(!j.tee) j.tee='blanco';
     // Los nombres viejos venían en un solo campo: se separan una vez.
@@ -664,7 +692,7 @@ function normalizar(){
     if(j.apellido===undefined) j.apellido='';
     if(j.apodo===undefined) j.apodo='';
   });
-  estado.torneos=estado.torneos||[];
+  estado.torneos=estado.torneos||[]; estado.pagos=estado.pagos||[];
   // Antes había un tilde "cuenta para la tabla". Ahora manda el torneo:
   // una ronda sin torneo no reparte puntos en ninguna tabla.
   (estado.rondas||[]).forEach(r=>{ if(r.torneoId===undefined) r.torneoId=''; });
@@ -674,7 +702,7 @@ function migrar(d){ estado=d; normalizar(); return estado; }
 
 async function guardarConfig(){
   if(!apiURL()){ pintarEstado(); return; }
-  try{ await api({accion:'guardarConfig', config:{jugadores:estado.jugadores,canchas:estado.canchas,torneos:estado.torneos}}); }
+  try{ await api({accion:'guardarConfig', config:{jugadores:estado.jugadores,canchas:estado.canchas,torneos:estado.torneos,pagos:estado.pagos}}); }
   catch(e){ toast('No se pudo guardar: '+e.message); }
   pintarEstado();
 }
@@ -1296,6 +1324,44 @@ function calcularIndex(difs){
            mejores:mejores.slice() };
 }
 
+/* Estadística de palos: sólo aparece si el jugador anotó alguno. Lo más útil
+   no es cuántas veces usó cada palo, sino qué pasa cuando lo usa del tee. */
+function renderPalos(jid, rs){
+  const el=document.getElementById('palosCaja');
+  const uso={}, tee={};
+  rs.forEach(r=>{
+    const c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
+    const s=r.scores.find(x=>x.jugadorId===jid); if(!s||!s.hoyos) return;
+    s.hoyos.forEach((h,k)=>{
+      if(!h.palos||!h.palos.length) return;
+      h.palos.forEach(p=>uso[p]=(uso[p]||0)+1);
+      const par=c.pars[idx[k]]||4;
+      if(par>3&&h.salida){
+        const p=h.palos[0];
+        const T=tee[p]=tee[p]||{n:0,fw:0,dif:0};
+        T.n++; if(h.salida==='Fairway') T.fw++;
+        if(h.g) T.dif+=h.g-par;
+      }
+    });
+  });
+  const total=Object.values(uso).reduce((a,b)=>a+b,0);
+  if(!total){ el.innerHTML=''; return; }
+  const masUsados=Object.entries(uso).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max=masUsados[0][1];
+  const tees=Object.entries(tee).filter(([,t])=>t.n>=3)
+    .map(([p,t])=>({p,n:t.n,fw:Math.round(t.fw*100/t.n),prom:t.dif/t.n}))
+    .sort((a,b)=>b.fw-a.fw);
+  el.innerHTML=`<div class="diag" style="margin-bottom:18px">
+    <h3>Palos</h3>
+    <div class="sub">${total} golpes con palo anotado</div>
+    ${masUsados.map(([p,n])=>`<div class="lin"><span class="et">${esc(p)}</span>
+      <span class="tr"><i style="width:${n*100/max}%"></i></span><span class="n">${n}</span></div>`).join('')}
+    ${tees.length?`<div class="foco"><b>Del tee, en par 4 y 5</b> (al menos 3 veces):<br>
+      ${tees.map(t=>`${esc(t.p)}: ${t.fw}% fairway, ${fmtPar(Math.round(t.prom*10)/10)} en el hoyo (${t.n})`).join('<br>')}
+      ${tees.length>1?`<br><br>El que mejor te funciona del tee es <b>${esc(tees[0].p)}</b>.`:''}</div>`:''}
+  </div>`;
+}
+
 function renderHandicap(jid){
   const el=document.getElementById('handicapCaja');
   const r=handicapIndex(jid);
@@ -1345,11 +1411,11 @@ function renderStats(){
     && r.scores.some(s=>s.jugadorId===jid&&s.hoyos));
   if(!rs.length){ el.innerHTML=`<div class="vacio-s">Sin rondas cargadas hoyo por hoyo en ese período${cid?' y en esa cancha':''}.</div>`;
     document.getElementById('tendencia').classList.add('oculto');
-    renderHandicap(jid);
+    renderHandicap(jid); document.getElementById('palosCaja').innerHTML='';
     if(gTend){gTend.destroy(); gTend=null;} if(gComp){gComp.destroy(); gComp=null;}
     return; }
   document.getElementById('tendencia').classList.remove('oculto');
-  renderHandicap(jid);
+  renderHandicap(jid); renderPalos(jid, rs);
   pintarTendencia(metricasPorRonda(rs, jid));
 
   // Cada dato lleva su propio contador: lo que quedó en "—" no entra en el promedio.
@@ -1425,7 +1491,7 @@ function abrirSetup(){
   setTramo('18');
   document.getElementById('sJugadores').innerHTML=estado.jugadores.map(j=>`<tr data-j="${j.id}">
     <td><input type="checkbox" checked aria-label="Juega ${esc(nomCompleto(j))}"></td><td><b>${esc(nomCompleto(j))}</b></td>
-    <td><select class="tee">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></td>
+    <td><select class="tee">${TEES.map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select></td>
     <td><input type="number" class="hcp" value="${j.hcp}" inputmode="numeric" aria-label="Handicap"></td></tr>`).join('');
   document.getElementById('dlgSetup').showModal();
 }
@@ -1456,6 +1522,10 @@ function editarRonda(id){
 let celdaSel=null;   // {campo, si}  celda elegida en la grilla
 let ocultarScore=false;
 
+const PALOS=['Driver','M3','M5','M7','H3','H4','H5','H6','H7','H8','H9','PW','GW','SW','LW','Putter'];
+// La fila de palos está apagada por defecto: es para las vueltas en las que
+// querés medirte, no para todas. La preferencia queda en el dispositivo.
+let verPalos=(()=>{ try{ return localStorage.getItem('golf-nqn:palos')==='1'; }catch(e){ return false; } })();
 const FILAS=[['g','Golpes'],['putts','Putts'],['salida','Salida'],['chip','Chips'],['sand','Sand'],['papa','Papas'],['pen','Penal.']];
 
 function renderJuego(){
@@ -1471,11 +1541,13 @@ function renderJuego(){
   document.getElementById('jSig').disabled=k===idx.length-1;
   document.getElementById('btnOjo').textContent=ocultarScore?'Ver score':'Ocultar score';
   document.getElementById('btnOjo').setAttribute('aria-pressed',String(ocultarScore));
+  document.getElementById('btnPalos').setAttribute('aria-pressed',String(verPalos));
 
   // Grilla: una fila por dato, una columna por jugador.
   let html='<thead><tr><th class="et">'+(idx.length?'Hoyo '+(h+1):'')+'</th>'
     + juego.scores.map(x=>`<th>${esc(iniciales(x.jugadorId))}</th>`).join('')+'</tr></thead><tbody>';
-  FILAS.forEach(([campo,et])=>{
+  const filas = verPalos ? FILAS.concat([['palos','Palos']]) : FILAS;
+  filas.forEach(([campo,et])=>{
     html+=`<tr><td class="et">${et}</td>`+juego.scores.map((x,si)=>{
       const d=x.hoyos[k];
       const sel=celdaSel&&celdaSel.campo===campo&&celdaSel.si===si?' sel':'';
@@ -1487,17 +1559,32 @@ function renderJuego(){
         const v=d.salida?d.salida.slice(0,4):'';
         return `<td class="celda sal${sel}${v?'':' vacia'}" data-f="salida" data-s="${si}">${v||'—'}</td>`;
       }
+      if(campo==='palos'){
+        const lista=d.palos||[];
+        const v=lista.length?(lista.length<=2?lista.join(' '):lista.length+' palos'):'';
+        return `<td class="celda sal${sel}${v?'':' vacia'}" data-f="palos" data-s="${si}">${v||'—'}</td>`;
+      }
       return `<td class="celda${sel}${d[campo]==null?' vacia':''}" data-f="${campo}" data-s="${si}">${d[campo]==null?'—':d[campo]}</td>`;
     }).join('')+'</tr>';
   });
-  // Totales acumulados de la vuelta
-  html+='<tr class="total"><td class="et">Total</td>'+juego.scores.map(x=>{
-    const t=x.hoyos.reduce((a,q)=>a+(q.g||0),0);
-    const jug=x.hoyos.filter(q=>q.g).length;
-    const pj=x.hoyos.reduce((a,q,m)=>a+(q.g?q.g-(c.pars[idx[m]]||4):0),0);
-    if(ocultarScore) return '<td class="oculto-v">·</td>';
-    return `<td>${jug?t:'—'}<div style="font-size:11px; font-weight:500; opacity:.7">${jug?fmtPar(pj):''}</div></td>`;
-  }).join('')+'</tr></tbody>';
+  // Subtotales: cada nueve con el par de la cancha y el score de cada uno,
+  // más el total de la vuelta. En rondas de 9 hoyos sobra la partición.
+  const tramos = idx.length===18
+    ? [['Ida',0,9],['Vuelta',9,18],['Total',0,18]]
+    : [['Total',0,idx.length]];
+  tramos.forEach(([et,ini,fin])=>{
+    const parT=idx.slice(ini,fin).reduce((a,h)=>a+(c.pars[h]||4),0);
+    html+=`<tr class="total"><td class="et">${et}<span class="parT">par ${parT}</span></td>`+
+      juego.scores.map(x=>{
+        if(ocultarScore) return '<td class="oculto-v">·</td>';
+        const tr=x.hoyos.slice(ini,fin);
+        const t=tr.reduce((a,q)=>a+(q.g||0),0);
+        const jug=tr.filter(q=>q.g).length;
+        const pj=tr.reduce((a,q,m)=>a+(q.g?q.g-(c.pars[idx[ini+m]]||4):0),0);
+        return `<td>${jug?t:'—'}<div style="font-size:11px; font-weight:500; opacity:.7">${jug?fmtPar(pj):''}</div></td>`;
+      }).join('')+'</tr>';
+  });
+  html+='</tbody>';
   document.getElementById('jGrilla').innerHTML=html;
   renderEditor();
 }
@@ -1514,6 +1601,16 @@ function renderEditor(){
   if(campo==='salida'){
     ed.innerHTML=`<div class="cab">${et} · <b>${esc(quien)}</b></div>
       <div class="ed-chips">${SALIDAS.map(v=>`<button data-salida="${v}" aria-pressed="${d.salida===v}">${v}</button>`).join('')}</div>`;
+    return;
+  }
+  if(campo==='palos'){
+    const lista=d.palos||[];
+    ed.innerHTML=`<div class="cab">Palos · <b>${esc(quien)}</b>
+        <span class="hint">tocalos en el orden en que pegaste</span></div>
+      <div class="secuencia">${lista.length?lista.map((v,i)=>
+        `<span class="pal">${i+1}. ${esc(v)}</span>`).join(''):'<span class="hint">sin palos anotados</span>'}
+        ${lista.length?'<button class="btn-q" data-palo-menos="1">Borrar último</button>':''}</div>
+      <div class="ed-palos">${PALOS.map(v=>`<button data-palo="${v}">${v}</button>`).join('')}</div>`;
     return;
   }
   const v = campo==='g' ? (d.g||par) : d[campo];
@@ -1539,7 +1636,7 @@ function abrirSumar(){
     }).join('')}</ul>
     <label>Sumar a la ronda</label>
     ${fuera.length?`<ul class="lista">${fuera.map(j=>`<li><span class="nombre">${esc(nomCompleto(j))}</span>
-      <select data-tee-nuevo="${j.id}" style="width:auto">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
+      <select data-tee-nuevo="${j.id}" style="width:auto">${TEES.map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
       <input class="hcp" type="number" inputmode="numeric" value="${j.hcp}" data-hcp-nuevo="${j.id}" aria-label="Handicap">
       <button class="btn-p" data-sumar="${j.id}" style="padding:7px 14px">Sumar</button></li>`).join('')}</ul>`
       :'<p class="hint" style="margin-bottom:12px">Ya están todos. Para crear a alguien nuevo, cerrá la ronda y usá Jugadores.</p>'}`;
@@ -1572,10 +1669,18 @@ document.getElementById('dlgJuego').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   if(b.id==='btnSumar'){ abrirSumar(); return; }
   if(b.id==='btnOjo'){ ocultarScore=!ocultarScore; renderJuego(); return; }
+  if(b.id==='btnPalos'){
+    verPalos=!verPalos;
+    try{ localStorage.setItem('golf-nqn:palos',verPalos?'1':'0'); }catch(e){}
+    if(celdaSel&&celdaSel.campo==='palos'&&!verPalos) celdaSel=null;
+    renderJuego(); return;
+  }
   if(!celdaSel) return;
   const c=cancha(juego.canchaId), par=c.pars[hoyosDe(juego.tramo)[juego.hoyoActual]]||4;
   const d=juego.scores[celdaSel.si].hoyos[juego.hoyoActual];
   if(b.dataset.salida){ d.salida=d.salida===b.dataset.salida?'':b.dataset.salida; renderJuego(); return; }
+  if(b.dataset.palo){ d.palos=(d.palos||[]).concat([b.dataset.palo]); renderJuego(); return; }
+  if(b.dataset.paloMenos){ d.palos=(d.palos||[]).slice(0,-1); if(!d.palos.length) delete d.palos; renderJuego(); return; }
   if(b.dataset.a){
     const campo=b.dataset.a.slice(0,-1), sig=b.dataset.a.slice(-1);
     if(campo==='g') d.g=Math.max(1,(d.g||par)+(sig==='+'?1:-1));
@@ -1785,7 +1890,7 @@ function renderJugadores(){
     <input style="flex:1 1 90px; min-width:70px" value="${esc(j.nombre||'')}" data-nom="${j.id}" placeholder="Nombre" aria-label="Nombre">
     <input style="flex:1 1 90px; min-width:70px" value="${esc(j.apellido||'')}" data-ape="${j.id}" placeholder="Apellido" aria-label="Apellido">
     <input style="flex:1 1 80px; min-width:64px" value="${esc(j.apodo||'')}" data-apo="${j.id}" placeholder="Apodo" aria-label="Apodo">
-    <select data-tee="${j.id}" style="width:auto">${['azul','blanco','rojo'].map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
+    <select data-tee="${j.id}" style="width:auto">${TEES.map(t=>`<option value="${t}"${j.tee===t?' selected':''}>${t[0].toUpperCase()+t.slice(1)}</option>`).join('')}</select>
     <input class="hcp" type="number" inputmode="numeric" value="${j.hcp}" data-hcp="${j.id}" aria-label="Handicap">
     <button class="btn-x" data-quitar-j="${j.id}">Quitar</button></li>`).join('')||'<li class="hint">Sin jugadores.</li>';
 }
@@ -1808,18 +1913,18 @@ function renderCancha(){
   const tot=t=>(c.tees[t]||[]).reduce((a,b)=>a+(b||0),0);
   const rt=t=>((c.rating||{})[t]||{});
   document.getElementById('cDetalle').innerHTML=`
-    <p class="hint" style="margin-bottom:8px">${esc(c.ciudad)} · par ${c.pars.reduce((a,b)=>a+b,0)} · azul ${tot('azul')||'—'} · blanco ${tot('blanco')||'—'} · rojo ${tot('rojo')||'—'} yds</p>
+    <p class="hint" style="margin-bottom:8px">${esc(c.ciudad)} · par ${c.pars.reduce((a,b)=>a+b,0)} · ${TEES.filter(t=>tot(t)).map(t=>t+' '+tot(t)).join(' · ')||'sin yardas cargadas'} yds</p>
     <label>Rating y slope por tee</label>
     <p class="hint" style="margin-bottom:8px">Están en la tarjeta del club. Hacen falta para calcular el handicap.</p>
     <table class="mini" style="margin-bottom:14px"><thead><tr><th>Tee</th><th>Course rating</th><th>Slope</th></tr></thead><tbody>
-    ${['azul','blanco','rojo'].map(t=>`<tr><td>${t[0].toUpperCase()+t.slice(1)}</td>
+    ${TEES.map(t=>`<tr><td>${t[0].toUpperCase()+t.slice(1)}</td>
       <td><input type="number" step="0.1" inputmode="decimal" value="${rt(t).cr??''}" data-r="cr" data-t="${t}" style="width:76px;padding:4px;text-align:center" placeholder="71.2"></td>
       <td><input type="number" inputmode="numeric" value="${rt(t).slope??''}" data-r="slope" data-t="${t}" style="width:76px;padding:4px;text-align:center" placeholder="128"></td></tr>`).join('')}
     </tbody></table>
     <div class="tarjeta"><table class="tj"><thead><tr><th class="j">Hoyo</th>${c.pars.map((_,i)=>`<th>${i+1}</th>`).join('')}</tr></thead><tbody>
       <tr><td class="j">Par</td>${c.pars.map((p,i)=>`<td><input type="number" value="${p}" data-c="pars" data-i="${i}" style="width:42px;padding:3px;text-align:center"></td>`).join('')}</tr>
       <tr><td class="j">Hcp</td>${c.pars.map((_,i)=>`<td><input type="number" value="${c.si[i]??''}" data-c="si" data-i="${i}" style="width:42px;padding:3px;text-align:center"></td>`).join('')}</tr>
-      ${['azul','blanco','rojo'].map(t=>`<tr><td class="j">${t[0].toUpperCase()+t.slice(1)}</td>${c.pars.map((_,i)=>`<td><input type="number" value="${(c.tees[t]||[])[i]??''}" data-c="tee" data-t="${t}" data-i="${i}" style="width:46px;padding:3px;text-align:center" placeholder="—"></td>`).join('')}</tr>`).join('')}
+      ${TEES.map(t=>`<tr><td class="j">${t[0].toUpperCase()+t.slice(1)}</td>${c.pars.map((_,i)=>`<td><input type="number" value="${(c.tees[t]||[])[i]??''}" data-c="tee" data-t="${t}" data-i="${i}" style="width:46px;padding:3px;text-align:center" placeholder="—"></td>`).join('')}</tr>`).join('')}
     </tbody></table></div>`;
 }
 document.getElementById('cDetalle').addEventListener('change',e=>{
@@ -1845,9 +1950,10 @@ function abrirImportRondas(d){
   const n=(d.rondas||[]).length;
   const j=d.jugador||{};
   const nom=[j.nombre,j.apodo?`"${j.apodo}"`:'',j.apellido].filter(Boolean).join(' ');
+  const cs=[...new Set((d.rondas||[]).map(x=>x.canchaId||d.canchaId))].map(id=>canchaCorta(cancha(id)));
   document.getElementById('impResumen').innerHTML=
     `<div class="diag" style="margin-bottom:14px"><h3>${n} ronda${n===1?'':'s'} en el archivo</h3>
-     <div class="sub">${esc(d.canchaNombre||cancha(d.canchaId).nombre)}${nom?' · '+esc(nom):''}</div></div>`;
+     <div class="sub">${esc(cs.join(', ')||'—')}${nom?' · '+esc(nom):''}</div></div>`;
   // preselecciona por apodo o nombre
   const sel=document.getElementById('impJugador');
   sel.innerHTML=estado.jugadores.map(x=>`<option value="${x.id}">${esc(nomCompleto(x))}</option>`).join('');
@@ -1860,19 +1966,21 @@ function abrirImportRondas(d){
 }
 function planImport(){
   const jid=document.getElementById('impJugador').value;
-  const cid=impDatos.canchaId;
+  const cid=impDatos.canchaId;   // cancha por defecto, si la ronda no trae la suya
   const nuevas=[], sumadas=[], repetidas=[];
   // Una misma fecha puede tener más de una vuelta (dos veces la ida, por
   // ejemplo). Por eso cada ronda existente se puede usar una sola vez en
   // este import: si no, la segunda del día se perdería.
   const tomadas=new Set();
   (impDatos.rondas||[]).forEach(x=>{
-    const mismas=estado.rondas.filter(r=>r.fecha===x.fecha && r.canchaId===cid);
+    const rc=x.canchaId||cid;
+    const mismas=estado.rondas.filter(r=>r.fecha===x.fecha && r.canchaId===rc);
     const yaTiene=mismas.find(r=>r.scores.some(s=>s.jugadorId===jid)
       && !tomadas.has('rep:'+r.id) && mismoTramo(r,x));
     if(yaTiene){ tomadas.add('rep:'+yaTiene.id); repetidas.push(x); return; }
     const libre=mismas.find(r=>!r.scores.some(s=>s.jugadorId===jid) && !tomadas.has(r.id));
     if(libre){ tomadas.add(libre.id); sumadas.push({x, ex:libre}); return; }
+    x.__cid=rc;
     nuevas.push(x);
   });
   return {jid,cid,nuevas,sumadas,repetidas};
@@ -1887,7 +1995,7 @@ function previsualizar(){
       <li><span class="nombre">Se suma a una ronda existente</span><b>${p.sumadas.length}</b></li>
       <li><span class="nombre">Ya estaban (se saltean)</span><b>${p.repetidas.length}</b></li>
     </ul>
-    ${p.sumadas.length?`<p class="hint" style="margin-bottom:10px">Se une a: ${p.sumadas.map(o=>fechaCorta(o.x.fecha)).join(', ')}</p>`:''}`;
+    ${p.sumadas.length?`<p class="hint" style="margin-bottom:10px">Se une a: ${p.sumadas.map(o=>fechaCorta(o.x.fecha)+' '+canchaCorta(cancha(o.ex.canchaId))).join(', ')}</p>`:''}`;
 }
 async function hacerImport(){
   const p=planImport();
@@ -1907,7 +2015,7 @@ async function hacerImport(){
   let n=0, fallo=null;
   try{
     for(const x of p.nuevas){
-      const r={id:uid(), fecha:x.fecha, canchaId:p.cid, tramo:x.tramo||'18', viento:'', nota:'',
+      const r={id:uid(), fecha:x.fecha, canchaId:x.__cid||x.canchaId||p.cid, tramo:x.tramo||'18', viento:'', nota:x.nota||'',
         torneoId:'', scores:[{jugadorId:p.jid, tee:x.tee||j.tee||'blanco', hcp:j.hcp||0, hoyos:x.hoyos}]};
       await api({accion:'guardarRonda', ronda:r});
       estado.rondas.push(r); n++; avance(n);
@@ -2038,9 +2146,82 @@ function abrirCondiciones(id){
   document.getElementById('kAviso').textContent = det
     ? 'Cambiar la cancha o el tramo recalcula el par de cada hoyo contra la tarjeta nueva. Los golpes anotados no se tocan.'
     : '';
-  renderCondJugadores(r);
+  renderCondJugadores(r); renderCondCervezas(r);
   document.getElementById('dlgCondiciones').showModal();
 }
+/* ===== Cervezas =====
+   Se cargan por ronda y se acumulan. Las pagadas se registran aparte, así
+   queda el historial de quién zafó y cuándo. */
+function deudaCervezas(){
+  const acc={};
+  estado.jugadores.forEach(j=>acc[j.id]={id:j.id,debe:0,pago:0});
+  estado.rondas.forEach(r=>{
+    Object.entries(r.cervezas||{}).forEach(([jid,n])=>{
+      if(!acc[jid]) acc[jid]={id:jid,debe:0,pago:0};
+      acc[jid].debe += Number(n)||0;
+    });
+  });
+  (estado.pagos||[]).forEach(p=>{ if(acc[p.jugadorId]) acc[p.jugadorId].pago += Number(p.cant)||0; });
+  return Object.values(acc).map(a=>({...a, saldo:a.debe-a.pago}))
+    .filter(a=>a.debe||a.pago).sort((a,b)=>b.saldo-a.saldo);
+}
+function abrirCervezas(){ renderCervezas(); document.getElementById('dlgCervezas').showModal(); }
+function renderCervezas(){
+  const d=deudaCervezas();
+  const total=d.reduce((a,b)=>a+b.saldo,0);
+  document.getElementById('cvTabla').innerHTML = d.length ? `
+    <div class="diag" style="margin-bottom:14px">
+      <h3>${total} cerveza${total===1?'':'s'} en juego</h3>
+      <div class="sub">Acumulado de todas las rondas</div>
+      <table class="mini"><thead><tr><th>Jugador</th><th>Debe</th><th>Pagó</th><th>Saldo</th></tr></thead><tbody>
+      ${d.map(x=>`<tr><td>${esc(apodoOnombre(x.id))}</td><td>${x.debe}</td><td>${x.pago}</td>
+        <td style="font-weight:700${x.saldo>0?';color:var(--bandera)':''}">${x.saldo}</td></tr>`).join('')}
+      </tbody></table></div>`
+    : '<div class="vacio-s" style="margin-bottom:14px">Todavía no se cargó ninguna cerveza.</div>';
+  document.getElementById('cvJugador').innerHTML=estado.jugadores.map(j=>
+    `<option value="${j.id}">${esc(apodoOnombre(j))}</option>`).join('');
+  const h=(estado.pagos||[]).slice().sort((a,b)=>b.fecha.localeCompare(a.fecha)).slice(0,10);
+  document.getElementById('cvHistorial').innerHTML = h.length ? `
+    <label style="margin-top:6px">Últimas pagadas</label>
+    <ul class="lista">${h.map(p=>`<li><span class="nombre">${esc(apodoOnombre(p.jugadorId))}</span>
+      <span class="hint">${fechaCorta(p.fecha)} · ${p.cant}</span>
+      <button class="btn-x" data-delpago="${p.id}">Borrar</button></li>`).join('')}</ul>` : '';
+}
+async function pagarCerveza(){
+  const jid=document.getElementById('cvJugador').value;
+  const n=Number(document.getElementById('cvCant').value)||0;
+  if(!jid||n<1){ toast('Poné cuántas'); return; }
+  estado.pagos.push({id:uid(), jugadorId:jid, cant:n, fecha:hoy()});
+  await guardarConfig(); renderCervezas(); render();
+  toast(`${n} cerveza${n===1?'':'s'} de ${apodoOnombre(jid)}`);
+}
+document.getElementById('btnCervezas').onclick=abrirCervezas;
+document.getElementById('btnPagar').onclick=pagarCerveza;
+document.getElementById('cvHistorial').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-delpago]'); if(!b) return;
+  estado.pagos=estado.pagos.filter(p=>p.id!==b.dataset.delpago);
+  await guardarConfig(); renderCervezas(); render();
+});
+
+function renderCondCervezas(r){
+  r.cervezas=r.cervezas||{};
+  document.getElementById('kCervezas').innerHTML=r.scores.map(s=>{
+    const n=r.cervezas[s.jugadorId]||0;
+    return `<div class="cont"><div class="et">${esc(iniciales(s.jugadorId))}</div>
+      <div class="row"><button data-cv="${s.jugadorId}-">−</button><span class="v">${n}</span>
+      <button data-cv="${s.jugadorId}+">+</button></div></div>`;
+  }).join('')||'<p class="hint">Sin jugadores.</p>';
+}
+document.getElementById('kCervezas').addEventListener('click',e=>{
+  const b=e.target.closest('[data-cv]'); if(!b) return;
+  const r=estado.rondas.find(x=>x.id===condId); if(!r) return;
+  const jid=b.dataset.cv.slice(0,-1), sig=b.dataset.cv.slice(-1);
+  r.cervezas=r.cervezas||{};
+  r.cervezas[jid]=Math.max(0,(r.cervezas[jid]||0)+(sig==='+'?1:-1));
+  if(!r.cervezas[jid]) delete r.cervezas[jid];
+  renderCondCervezas(r);   // se guarda al tocar Guardar en Condiciones
+});
+
 function renderCondJugadores(r){
   document.getElementById('kJugadores').innerHTML=r.scores.map(s=>{
     const g=totalGolpes(s), jug=s.hoyos?s.hoyos.filter(h=>h.g).length:nHoyos(r);
@@ -2056,7 +2237,7 @@ document.getElementById('kJugadores').addEventListener('click',async e=>{
   if(!confirm(`¿Quitar a ${apodoOnombre(jid)} de esta ronda? Se borran sus golpes de esta vuelta y no se puede deshacer.`)) return;
   r.scores=r.scores.filter(s=>s.jugadorId!==jid);
   await guardarRonda(r);
-  renderCondJugadores(r); render(); toast('Jugador quitado de la ronda');
+  renderCondJugadores(r); renderCondCervezas(r); render(); toast('Jugador quitado de la ronda');
 });
 
 function guardarCondiciones(){
