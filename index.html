@@ -94,6 +94,8 @@
   table.tj .bir{background:#F2C6BC; font-weight:700}
   table.tj .bog{background:#E7EAE6}
   table.tj .dbl{background:#D4DAD3}
+  table.tj .sub{background:#EDEFEA; font-weight:700; color:var(--tinta)}
+  table.tj th.sub{background:var(--arena); font-size:10.5px; letter-spacing:.02em}
   table.tj .tot{background:var(--arena); font-weight:700}
 
   .barra{position:fixed; left:0; right:0; bottom:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(to top, var(--campo) 70%, rgba(244,246,241,0)); display:flex; justify-content:center; gap:8px; pointer-events:none}
@@ -245,7 +247,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v16</b> · 14/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v16.3</b> · 14/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnCervezas">Cervezas</button>
@@ -995,10 +997,22 @@ function fichaRonda(r, abierta){
   const res=resultados(r), c=cancha(r.canchaId), idx=hoyosDe(r.tramo||'18');
   const gan=res.filter(x=>x.puesto===1).map(x=>apodoOnombre(x.jugadorId)).join(' y ');
   const g=res[0], det=r.scores.some(s=>s.hoyos);
+  // En las vueltas de 18 se intercala el subtotal de la ida después del 9,
+  // para leer cómo fue cada mitad sin tener que sumar a mano.
+  const corte = idx.length===18 ? 9 : null;
+  const parRango=(a,b)=>idx.slice(a,b).reduce((t,h)=>t+(c.pars[h]||4),0);
+  const sumaRango=(f,a,b)=>{ if(!f.hoyos) return null;
+    const t=f.hoyos.slice(a,b); return t.some(q=>q.g)?t.reduce((x,q)=>x+(q.g||0),0):null; };
   const tj=det?`<div class="tarjeta"><table class="tj"><thead>
-    <tr><th class="j">Hoyo</th>${idx.map(h=>`<th>${h+1}</th>`).join('')}<th class="tot">T</th></tr>
-    <tr><th class="j">Par</th>${idx.map(h=>`<th>${c.pars[h]}</th>`).join('')}<th class="tot">${parDe(r)}</th></tr></thead><tbody>
-    ${res.map(f=>`<tr><td class="j">${esc(iniciales(f.jugadorId))}</td>${idx.map((h,k)=>{const v=f.hoyos?(f.hoyos[k]||{}).g:null; return `<td class="${claseHoyo(v,c.pars[h])}">${v||'—'}</td>`;}).join('')}<td class="tot">${f.total}</td></tr>`).join('')}
+    <tr><th class="j">Hoyo</th>${idx.map((h,k)=>
+        (corte&&k===corte?'<th class="sub">IDA</th>':'')+`<th>${h+1}</th>`).join('')}${corte?'<th class="sub">VTA</th>':''}<th class="tot">T</th></tr>
+    <tr><th class="j">Par</th>${idx.map((h,k)=>
+        (corte&&k===corte?`<th class="sub">${parRango(0,9)}</th>`:'')+`<th>${c.pars[h]}</th>`).join('')}${corte?`<th class="sub">${parRango(9,18)}</th>`:''}<th class="tot">${parDe(r)}</th></tr></thead><tbody>
+    ${res.map(f=>`<tr><td class="j">${esc(iniciales(f.jugadorId))}</td>${idx.map((h,k)=>{
+        const pre = corte&&k===corte ? `<td class="sub">${sumaRango(f,0,9)??'—'}</td>` : '';
+        const v=f.hoyos?(f.hoyos[k]||{}).g:null;
+        return pre+`<td class="${claseHoyo(v,c.pars[h])}">${v||'—'}</td>`;
+      }).join('')}${corte?`<td class="sub">${sumaRango(f,9,18)??'—'}</td>`:''}<td class="tot">${f.total}</td></tr>`).join('')}
     </tbody></table></div>`:'';
   return `<details class="ronda"${abierta?' open':''}>
     <summary>
@@ -1569,12 +1583,11 @@ function renderJuego(){
   });
   // Subtotales: cada nueve con el par de la cancha y el score de cada uno,
   // más el total de la vuelta. En rondas de 9 hoyos sobra la partición.
-  const tramos = idx.length===18
-    ? [['Ida',0,9],['Vuelta',9,18],['Total',0,18]]
-    : [['Total',0,idx.length]];
+  // Durante la carga alcanza el total de la vuelta: la partición por nueve
+  // está en la tarjeta de la ronda, que es donde se lee después.
+  const tramos=[['Total',0,idx.length]];
   tramos.forEach(([et,ini,fin])=>{
-    const parT=idx.slice(ini,fin).reduce((a,h)=>a+(c.pars[h]||4),0);
-    html+=`<tr class="total"><td class="et">${et}<span class="parT">par ${parT}</span></td>`+
+    html+=`<tr class="total"><td class="et">${et}</td>`+
       juego.scores.map(x=>{
         if(ocultarScore) return '<td class="oculto-v">·</td>';
         const tr=x.hoyos.slice(ini,fin);
@@ -1978,7 +1991,10 @@ function planImport(){
     const yaTiene=mismas.find(r=>r.scores.some(s=>s.jugadorId===jid)
       && !tomadas.has('rep:'+r.id) && mismoTramo(r,x));
     if(yaTiene){ tomadas.add('rep:'+yaTiene.id); repetidas.push(x); return; }
-    const libre=mismas.find(r=>!r.scores.some(s=>s.jugadorId===jid) && !tomadas.has(r.id));
+    // Sólo se unen si jugaron el MISMO tramo: meter una ida dentro de una
+    // ronda de 18 desalinearía los hoyos y ensuciaría todas las estadísticas.
+    const libre=mismas.find(r=>!r.scores.some(s=>s.jugadorId===jid)
+      && !tomadas.has(r.id) && mismoTramo(r,x));
     if(libre){ tomadas.add(libre.id); sumadas.push({x, ex:libre}); return; }
     x.__cid=rc;
     nuevas.push(x);
