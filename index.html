@@ -247,7 +247,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v16.3</b> · 14/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v16.4</b> · 14/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnCervezas">Cervezas</button>
@@ -630,11 +630,23 @@ function jsonp(params, timeoutMs){
     const u=apiURL(); if(!u){ reject(new Error('sin conexión configurada')); return; }
     const cb='golfcb_'+Math.random().toString(36).slice(2);
     const s=document.createElement('script');
+    const t0=Date.now();
     let listo=false;
+    // Con muchas rondas la planilla tarda: la espera es generosa a propósito.
+    const limite=timeoutMs||45000;
     const limpiar=()=>{ try{delete window[cb];}catch(e){window[cb]=undefined;} s.remove(); clearTimeout(t); };
-    const t=setTimeout(()=>{ if(!listo){ limpiar(); reject(new Error('la planilla no respondió')); } }, timeoutMs||20000);
-    window[cb]=d=>{ listo=true; limpiar(); (d&&d.ok)?resolve(d):reject(new Error((d&&d.error)||'error del servidor')); };
-    s.onerror=()=>{ if(!listo){ limpiar(); reject(new Error('no se pudo contactar la planilla')); } };
+    const t=setTimeout(()=>{ if(!listo){ limpiar();
+      reject(new Error(`no contestó en ${Math.round(limite/1000)} segundos`)); } }, limite);
+    window[cb]=d=>{ listo=true; limpiar();
+      if(d&&d.ok) resolve(d);
+      else reject(new Error((d&&d.error)||'error del servidor'));
+    };
+    // Si el script carga pero nunca llama a la función, es que la planilla
+    // devolvió algo que no es JSONP: casi siempre, código viejo sin actualizar.
+    s.onload=()=>{ setTimeout(()=>{ if(!listo){ limpiar();
+      reject(new Error('la planilla contestó, pero no en el formato esperado. Actualizá el script en Apps Script y creá una versión nueva.')); } }, 400); };
+    s.onerror=()=>{ if(!listo){ limpiar();
+      reject(new Error(`no se pudo contactar (${Date.now()-t0} ms)`)); } };
     const qs=Object.entries({...params, callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
     s.src=u+'?'+qs;
     document.head.appendChild(s);
@@ -661,8 +673,9 @@ async function cargar(){
 
 async function refrescar(primeraVez){
   if(!apiURL()){ modoGuardado='local'; pintarEstado(); return; }
+  document.getElementById('estado').textContent='Leyendo la planilla…';
   try{
-    const d=await jsonp({t:Date.now()});
+    const d=await jsonp({t:Date.now()}, 60000);
     if(d.config){ if(d.config.jugadores) estado.jugadores=d.config.jugadores; if(d.config.canchas) estado.canchas=d.config.canchas; if(d.config.torneos) estado.torneos=d.config.torneos; if(d.config.pagos) estado.pagos=d.config.pagos; }
     estado.rondas=d.rondas||[];
     modoGuardado='compartido';
@@ -769,7 +782,7 @@ async function conectar(){
   const anterior=apiURL();
   setApiURL(u);
   try{
-    await jsonp({t:Date.now()}, 30000);
+    await jsonp({t:Date.now()}, 60000);
     document.getElementById('dlgConexion').close();
     await refrescar(); render(); toast('Conectado');
   }catch(e){
