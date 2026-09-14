@@ -247,7 +247,7 @@
   <header>
     <div>
       <h1>Golf NQN</h1>
-      <p class="sub">Salidas con amigos · <b>v16.4</b> · 14/09/2026</p>
+      <p class="sub">Salidas con amigos · <b>v17</b> · 14/09/2026</p>
     </div>
     <div style="display:flex; gap:4px">
       <button class="btn-x" id="btnCervezas">Cervezas</button>
@@ -559,7 +559,11 @@
 <dialog id="dlgCanchas">
   <div class="dlg">
     <div class="dlg-cab"><h2>Canchas</h2><button class="btn-x" data-cerrar="dlgCanchas">Cerrar</button></div>
-    <div class="fila"><div><label for="cSel">Ver cancha</label><select id="cSel"></select></div></div>
+    <div class="fila" style="grid-template-columns:1fr auto; align-items:end">
+      <div><label for="cSel">Ver cancha</label><select id="cSel"></select></div>
+      <button id="btnTarjeta">Traer tarjeta</button>
+    </div>
+    <p class="hint" id="cTarjetaAviso" style="margin-bottom:12px"></p>
     <div id="cDetalle"></div>
     <p class="hint" style="margin-top:12px">Tocá cualquier número para corregirlo contra la tarjeta del club.</p>
   </div>
@@ -1934,10 +1938,45 @@ function abrirCanchas(){
   document.getElementById('cSel').innerHTML=estado.canchas.map(c=>`<option value="${c.id}">${esc(c.nombre)}</option>`).join('');
   renderCancha(); document.getElementById('dlgCanchas').showModal();
 }
+/* Los datos de las canchas viajan guardados en la planilla, así que una
+   corrección hecha acá en el código no llega sola: hay que pedirla. Esto
+   sobrescribe par, handicap y yardas de una cancha con los de la tarjeta. */
+function baseDe(cid){ return CANCHAS_BASE.find(c=>c.id===cid)||null; }
+async function traerTarjeta(){
+  const cid=document.getElementById('cSel').value;
+  const b=baseDe(cid), c=cancha(cid);
+  if(!b){ toast('Esta cancha no tiene tarjeta cargada en la app'); return; }
+  const tees=Object.keys(b.tees||{}).filter(t=>(b.tees[t]||[]).length);
+  if(!confirm(`Traer la tarjeta de ${canchaCorta(b)}?\n\nSe reemplazan par, handicap de cada hoyo y las yardas de: ${tees.join(', ')}.\nLos scores de las rondas NO se tocan.`)) return;
+  c.pars=b.pars.slice();
+  c.si=b.si.slice();
+  c.tees=JSON.parse(JSON.stringify(b.tees||{}));
+  if(b.corto) c.corto=b.corto;
+  await guardarConfig();
+  renderCancha(); render();
+  toast('Tarjeta cargada en '+canchaCorta(c));
+}
+document.getElementById('btnTarjeta').onclick=traerTarjeta;
+
 function renderCancha(){
   const c=cancha(document.getElementById('cSel').value);
   const tot=t=>(c.tees[t]||[]).reduce((a,b)=>a+(b||0),0);
   const rt=t=>((c.rating||{})[t]||{});
+  const b=baseDe(c.id);
+  const av=document.getElementById('cTarjetaAviso');
+  if(!b) av.textContent='Esta cancha la cargaste a mano: no hay tarjeta de referencia en la app.';
+  else {
+    const dif=[];
+    if(JSON.stringify(b.pars)!==JSON.stringify(c.pars)) dif.push('el par');
+    if(JSON.stringify(b.si)!==JSON.stringify(c.si)) dif.push('el handicap por hoyo');
+    const faltan=Object.keys(b.tees||{}).filter(t=>(b.tees[t]||[]).length &&
+      JSON.stringify(b.tees[t])!==JSON.stringify((c.tees||{})[t]));
+    if(faltan.length) dif.push('las yardas de '+faltan.join(', '));
+    av.textContent = dif.length
+      ? 'Lo guardado no coincide con la tarjeta en: '+dif.join(', ')+'. Tocá “Traer tarjeta” para corregirlo.'
+      : 'Coincide con la tarjeta del club.';
+    av.style.color = dif.length ? 'var(--bandera)' : 'var(--tinta-2)';
+  }
   document.getElementById('cDetalle').innerHTML=`
     <p class="hint" style="margin-bottom:8px">${esc(c.ciudad)} · par ${c.pars.reduce((a,b)=>a+b,0)} · ${TEES.filter(t=>tot(t)).map(t=>t+' '+tot(t)).join(' · ')||'sin yardas cargadas'} yds</p>
     <label>Rating y slope por tee</label>
